@@ -74,4 +74,39 @@ exports.getTask = async (req, res) => {
     }
   };
 
+ //   POST Method to post a task  -> route(/api/tasks):
  
+ exports.createTask = async (req, res) => {
+  try {
+    // Add creator to req.body
+    req.body.creator = req.user.id;
+    
+    // Check if user has enough credits
+    const user = await User.findById(req.user.id);
+    if (user.credits < req.body.credits) {
+      return res.status(400).json({
+        success: false,
+        message: 'Insufficient credits'
+      });
+    }
+    
+    // Deduct credits from creator
+    user.credits -= req.body.credits;
+    user.tasksCreated += 1;
+    await user.save();
+    
+    // Create task
+    const task = await Task.create(req.body);
+    
+    res.status(201).json({
+      success: true,
+      data: task
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server Error',
+      error: error.message
+    });
+  }
+};
