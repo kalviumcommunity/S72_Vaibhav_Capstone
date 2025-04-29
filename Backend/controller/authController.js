@@ -2,12 +2,7 @@
 const User = require('../model/user');
 const jwt = require('jsonwebtoken');
 
-// Generate JWT Token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE
-  });
-};
+
 
    // @desc    Register user
    
@@ -28,8 +23,7 @@ const generateToken = (id) => {
          password
        });
    
-       // Create token
-       const token = generateToken(user._id);
+ 
    
        res.status(201).json({
          success: true,
@@ -71,8 +65,7 @@ const generateToken = (id) => {
          return res.status(401).json({ success: false, message: 'Invalid credentials' });
        }
    
-       // Create token
-       const token = generateToken(user._id);
+
    
        res.status(200).json({
          success: true,
