@@ -1,1 +1,0 @@
-Backend deployment: https://s72-vaibhav-capstone.onrender.com
