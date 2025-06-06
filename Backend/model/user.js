@@ -1,6 +1,14 @@
-
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+
+// First drop any existing indexes
+mongoose.connection.on('connected', async () => {
+  try {
+    await mongoose.connection.collection('users').dropIndexes();
+  } catch (error) {
+    console.log('No indexes to drop');
+  }
+});
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -65,7 +73,6 @@ const UserSchema = new mongoose.Schema({
 });
 
 
-
 UserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {
     next();
@@ -74,7 +81,6 @@ UserSchema.pre('save', async function(next) {
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
-
 
 UserSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
