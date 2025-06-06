@@ -63,6 +63,7 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  role: { type: String, default: 'user' }, // Default role is 'user', admin will have 'admin'
   ratingCount: {
     type: Number,
     default: 0
@@ -70,6 +71,7 @@ const UserSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
 
 UserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {
