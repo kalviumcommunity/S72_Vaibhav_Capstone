@@ -1,4 +1,3 @@
-
 const express = require('express');
 const {
   getTasks,
@@ -10,7 +9,6 @@ const {
   approveTask,
   rejectTask,
   cancelTask
-  
 } = require('../controller/taskController');
 const { protect } = require('../middleware/auth');
 
@@ -18,7 +16,9 @@ const router = express.Router();
 
 router.get('/', getTasks);
 router.get('/:id', getTask);
-router.post('/', createTask);
+
+// Protected routes
+router.post('/', protect, createTask);
 router.put('/:id/claim', protect, claimTask);
 router.put('/:id/submit', protect, submitTask);
 router.put('/:id/mark-complete', protect, markOfflineTaskComplete);
