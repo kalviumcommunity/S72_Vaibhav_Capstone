@@ -4,39 +4,16 @@ meta {
   seq: 2
 }
 
-post {
-  url: http://localhost:3000/api/tasks
+get {
+  url: http://localhost:3000/api/users/684292bf9d7c58ce5cfa5a90
   body: json
   auth: inherit
 }
 
 body:json {
-  
   {
-    "title": "Design a Modern Landing Page",
-    "description": "Create a responsive landing page using React and Tailwind CSS. The page should include a hero section, features section, testimonials, and contact form.",
-    "credits": 100,
-    "category": "Web Development",
-    "complexity": "general",
-    "location": "remote",
-    "estimatedHours": 15,
-    "deadline": "2024-04-30T00:00:00.000Z",
-    "skills": ["React", "Tailwind CSS", "Responsive Design", "UI/UX"]
-  }
-}
-
-post {
-  url: http://localhost:3000/api/auth/register
-  body: json
-  auth: inherit
-}
-
-body:json{
-  {
-    {
-  "name":"VaibhavK",
-  "email":"vaibhavku246@gmail.com",
-  "password":"Vaibh@123"
-}
+    "name":"VaibhavK",
+    "email":"vaibhavku246@gmail.com",
+    "password":"Vaibh@123"
   }
 }
