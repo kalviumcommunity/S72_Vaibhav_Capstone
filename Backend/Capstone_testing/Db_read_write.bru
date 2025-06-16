@@ -4,16 +4,20 @@ meta {
   seq: 2
 }
 
-get {
-  url: http://localhost:3000/api/users/684292bf9d7c58ce5cfa5a90
+delete {
+  url: http://localhost:5000/api/tasks/684bfcfe7511873a7fa3cc04
   body: json
   auth: inherit
 }
 
+headers {
+  Content-Type: application/json
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NGMwZGE2NzUxMTg3M2E3ZmEzY2MzOSIsImlhdCI6MTc0OTgxOTgyMSwiZXhwIjoxNzUyNDExODIxfQ.f2LkOM2BweVzevDWVmFbFHvpawueHJw9188QVt7DYyg
+}
+
 body:json {
   {
-    "name":"VaibhavK",
-    "email":"vaibhavku246@gmail.com",
-    "password":"Vaibh@123"
+    "email":"Vaibh0607@gmail.com",
+    "password":"Vaibh0607"
   }
 }
