@@ -29,5 +29,7 @@ router.put('/:id/mark-complete', protect, markOfflineTaskComplete);
 router.put('/:id/approve', protect, approveTask);
 router.put('/:id/reject', protect, rejectTask);
 router.put('/:id/cancel', protect, cancelTask);
+router.put('/:id', protect, updateTask);
+router.delete('/:id', protect, deleteTask);
 
 module.exports = router;
