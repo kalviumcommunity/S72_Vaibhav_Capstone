@@ -142,3 +142,45 @@ exports.getUsers = async (req, res) => {
       });
     }
   };
+  // @desc    Upload user avatar
+// @route   POST /api/users/upload-avatar
+// @access  Private
+exports.uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded.'
+      });
+    }
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.'
+      });
+    }
+
+    // Construct the public URL for the avatar
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+
+    user.avatar = avatarUrl;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Avatar uploaded successfully!',
+      user: user
+    });
+
+  } catch (error) {
+    console.error('Error uploading avatar:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server Error',
+      error: error.message
+    });
+  }
+};

@@ -441,3 +441,57 @@ exports.getTask = async (req, res) => {
      });
    }
   };
+
+  // @desc    Upload task file
+// @route   POST /api/tasks/upload-file
+// @access  Private
+exports.uploadTaskFile = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded.'
+      });
+    }
+
+    const fileUrl = `/uploads/tasks/${req.file.filename}`;
+
+    res.status(200).json({
+      success: true,
+      message: 'File uploaded successfully!',
+      fileUrl: fileUrl
+    });
+
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server Error',
+      error: error.message
+    });
+  }
+};
+
+exports.downloadTaskFile = async (req, res) => {
+  try {
+    const { taskId, filename } = req.params;
+    const filePath = path.join(__dirname, `../uploads/tasks/${filename}`);
+
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found.'
+      });
+    }
+
+    res.download(filePath);
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server Error',
+      error: error.message
+    });
+  }
+};
