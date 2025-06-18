@@ -28,8 +28,8 @@ const generateToken = (id) => {
          password
        });
    
-       // Create token
-       const token = generateToken(user._id);
+      // Create token
+      const token = generateToken(user._id);
    
        res.status(201).json({
          success: true,
@@ -70,9 +70,11 @@ const generateToken = (id) => {
        if (!isMatch) {
          return res.status(401).json({ success: false, message: 'Invalid credentials' });
        }
+
    
        // Create token
-       const token = generateToken(user._id);
+      const token = generateToken(user._id);
+
    
        res.status(200).json({
          success: true,
