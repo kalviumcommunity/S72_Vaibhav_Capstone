@@ -21,6 +21,8 @@ router.get('/:id', getTask);
 router.post('/upload-file', protect, upload.single('file'), uploadTaskFile);
 router.get('/:taskId/files/:filename', protect, downloadTaskFile);
 
+router.get('/autocomplete-titles', getTitleSuggestions);
+
 // Protected routes
 router.post('/', protect, createTask);
 router.put('/:id/claim', protect, claimTask);
