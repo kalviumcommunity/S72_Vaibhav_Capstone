@@ -495,3 +495,80 @@ exports.downloadTaskFile = async (req, res) => {
     });
   }
 };
+
+const deleteTask = async (req, res) => {
+  try {
+    // Validate task ID
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid task ID format' });
+    }
+
+    const task = await Task.findById(req.params.id);
+
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    // Check if the user is the task creator
+    if (task.creator.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Not authorized to delete this task' });
+    }
+
+    // Only allow deletion if task is OPEN and unclaimed
+    if (task.status !== TASK_STATUS.OPEN || task.claimant) {
+      return res.status(400).json({ success: false, message: 'Only open and unclaimed tasks can be deleted' });
+    }
+
+    await task.deleteOne();
+
+    res.json({ success: true, message: 'Task deleted successfully' });
+
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete task', error: error.message });
+  }
+};
+
+// @desc    Update a task
+// @route   PUT /api/tasks/:id
+// @access  Private
+const updateTask = async (req, res) => {
+  try {
+    // Validate task ID
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid task ID format' });
+    }
+
+    const task = await Task.findById(req.params.id);
+
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    // Check if the user is the task creator
+    if (task.creator.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Not authorized to update this task' });
+    }
+
+    // Only allow update if task is OPEN and unclaimed
+    if (task.status !== TASK_STATUS.OPEN || task.claimant) {
+      return res.status(400).json({ success: false, message: 'Only open and unclaimed tasks can be updated' });
+    }
+
+    // Update task fields
+    task.title = req.body.title || task.title;
+    task.description = req.body.description || task.description;
+    task.credits = req.body.credits !== undefined ? req.body.credits : task.credits;
+    task.estimatedHours = req.body.estimatedHours || task.estimatedHours;
+    task.category = req.body.category || task.category;
+    task.skills = req.body.skills || task.skills;
+
+    const updatedTask = await task.save();
+
+    res.json({ success: true, task: updatedTask });
+
+  } catch (error) {
+    console.error('Error updating task:', error);
+    res.status(500).json({ success: false, message: 'Failed to update task', error: error.message });
+  }
+};
