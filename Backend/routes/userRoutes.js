@@ -33,6 +33,10 @@ router.get('/profile', protect, async (req, res) => {
   }
 });
 
+router.post('/upload-avatar', protect, upload.single('avatar'), uploadAvatar);
+
+module.exports = router;
+
 router.put('/credits', updateCredits);
 
 module.exports = router;
