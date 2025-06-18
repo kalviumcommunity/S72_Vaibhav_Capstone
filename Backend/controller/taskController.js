@@ -573,3 +573,53 @@ const updateTask = async (req, res) => {
   }
 };
 
+
+// @desc    Get title suggestions
+// @route   GET /api/tasks/autocomplete-titles
+// @access  Public
+const getTitleSuggestions = async (req, res) => {
+  const { query } = req.query;
+
+  if (!query || query.length < 3) {
+    return res.json({ success: true, suggestions: [] }); // Return empty for short queries
+  }
+
+  try {
+    const prompt = `Generate 3-5 concise, relevant, and creative task title suggestions based on the following incomplete input, suitable for a task marketplace. Only provide the suggestions as a comma-separated list, without any introductory or concluding sentences. If no good suggestions, return nothing: ${query}`;
+
+    const geminiResponse = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const generatedText = geminiResponse.data.candidates?.[0]?.content?.parts?.[0]?.text;
+    let suggestions = [];
+
+    if (generatedText) {
+      // Attempt to parse as a comma-separated list
+      suggestions = generatedText.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    }
+    
+    res.json({ success: true, suggestions });
+
+  } catch (error) {
+    console.error('Error fetching title suggestions from Gemini API:', error.response?.data || error.message);
+    res.status(500).json({ success: false, message: 'Error fetching suggestions' });
+  }
+};
+
