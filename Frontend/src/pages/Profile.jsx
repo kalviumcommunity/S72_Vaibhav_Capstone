@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { API_URL } from '../config';
-import './Pages.css';
 
 const Profile = () => {
   const { user: authUser, token, setUser } = useAuth();

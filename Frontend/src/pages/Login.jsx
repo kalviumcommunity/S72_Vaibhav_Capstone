@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
 import { API_URL } from '../config';
 import axios from 'axios';
-import './Pages.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');

@@ -3,7 +3,6 @@ import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../config';
-import './Pages.css';
 
 const TaskMarketplace = () => {
   const [tasks, setTasks] = useState([]);
