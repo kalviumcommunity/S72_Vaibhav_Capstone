@@ -9,7 +9,7 @@ const Nav = styled.nav`
   align-items: center;
   background-color: var(--white);
   color: var(--black);
-  padding: 1.2rem 4rem;
+  padding: 0.8rem 2.5rem;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
@@ -83,7 +83,7 @@ const AuthButtons = styled(NavItem)`
 const Button = styled(Link)`
   padding: 0.6rem 1.2rem;
   border: none;
-  border-radius: 5px;
+  border-radius: 0.25rem;
   cursor: pointer;
   font-weight: 500;
   text-decoration: none;
