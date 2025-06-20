@@ -22,7 +22,8 @@ const TaskMarketplace = () => {
   const getAvatarUrl = (avatarPath) => {
     if (!avatarPath) return 'https://via.placeholder.com/24';
     if (avatarPath.startsWith('http')) return avatarPath;
-    return `${API_URL}${avatarPath}`;
+    // Ensure exactly one slash between API_URL and avatarPath
+    return `${API_URL}/${avatarPath.replace(/^\//, '')}`;
   };
 
   const fetchTasks = async () => {
