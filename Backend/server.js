@@ -2,30 +2,54 @@ const express = require('express');
 const mongoose = require('mongoose');
 const app = express();
 require('dotenv').config();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
+const path = require('path');
+const cors = require('cors');
+const fs = require('fs');
+const http = require('http');
+const { Server } = require('socket.io');
 
-const userRoutes = require('./routes/userRoutes');
-const taskRoutes = require('./routes/taskRoutes');
-const authRoutes = require('./routes/authRoutes');
+// Create uploads directories if they don't exist
+const uploadDirs = [
+  path.join(__dirname, 'uploads'),
+  path.join(__dirname, 'uploads', 'tasks'),
+  path.join(__dirname, 'uploads', 'avatars')
+];
+
+uploadDirs.forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
+
+// Use CORS middleware
+app.use(cors());
 
 app.use(express.json());
 
-// Enable CORS
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
-    return res.status(200).json({});
-  }
-  next();
-});
-
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/tasks', taskRoutes);
+// Serve static files from the 'uploads' directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const MONGO_URI = process.env.MONGO_URI;
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
+
+// Socket.io chat logic (simple per-task room)
+io.on('connection', (socket) => {
+  socket.on('joinTaskRoom', (taskId) => {
+    socket.join(taskId);
+  });
+
+  socket.on('sendMessage', ({ taskId, message, user }) => {
+    io.to(taskId).emit('receiveMessage', { message, user, timestamp: new Date() });
+  });
+});
 
 const connectDB = async () => {
   try {
@@ -34,6 +58,24 @@ const connectDB = async () => {
       useUnifiedTopology: true,
     });
     console.log('Connected to database successfully!');
+    
+    // Load routes after database connection
+    const userRoutes = require('./routes/userRoutes');
+    const taskRoutes = require('./routes/taskRoutes');
+    const authRoutes = require('./routes/authRoutes');
+
+    app.use('/api/auth', authRoutes);
+    app.use('/api/users', userRoutes);
+    app.use('/api/tasks', taskRoutes);
+
+    app.get('/', (req, res) => {
+      res.send("Hello!");
+    });
+
+    server.listen(port, () => {
+      console.log(`The website is running on http://localhost:${port}`);
+      console.log(`Socket.io server running on port ${port}`);
+    });
   } catch (error) {
     console.error('Error connecting to database:', error.message);
     process.exit(1);
@@ -42,11 +84,3 @@ const connectDB = async () => {
 
 // Connect to MongoDB
 connectDB();
-
-app.get('/', (req, res) => {
-  res.send("Hello!");
-});
-
-app.listen(port, () => {
-  console.log(`The website is running on http://localhost:${port}`);
-});

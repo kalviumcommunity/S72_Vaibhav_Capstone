@@ -1,6 +1,21 @@
 const mongoose = require('mongoose');
 
-const TaskSchema = new mongoose.Schema({
+// Define status enum values
+const TASK_STATUS = {
+  OPEN: 'open',
+  IN_PROGRESS: 'in-progress',
+  SUBMITTED: 'submitted',
+  COMPLETED: 'completed',
+  REJECTED: 'rejected',
+  CANCELLED: 'cancelled'
+};
+
+// Check if the model exists before creating it
+let Task;
+try {
+  Task = mongoose.model('Task');
+} catch {
+  const taskSchema = new mongoose.Schema({
     title: {
       type: String,
       required: [true, 'Please add a title'],
@@ -12,75 +27,66 @@ const TaskSchema = new mongoose.Schema({
       required: [true, 'Please add a description'],
       maxlength: [1000, 'Description cannot be more than 1000 characters']
     },
-    creator: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
-    },
-    claimer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      default: null
-    },
     credits: {
       type: Number,
-      required: [true, 'Please add credit amount'],
+      required: [true, 'Please add credit value'],
       min: [1, 'Credits must be at least 1']
+    },
+    skills: [{
+      type: String,
+      required: true
+    }],
+    deadline: {
+      type: Date,
+      required: [true, 'Please add a deadline']
     },
     status: {
       type: String,
-      enum: ['open', 'claimed', 'in_review', 'completed', 'cancelled'],
-      default: 'open'
+      enum: Object.values(TASK_STATUS),
+      default: TASK_STATUS.OPEN
     },
-    complexity: {
-      type: String,
-      enum: ['general', 'complex'],
-      default: 'general'
-    },
-    location: {
-      type: String,
-      enum: ['remote', 'offline'],
-      default: 'remote'
+    estimatedHours: {
+      type: Number,
+      required: [true, 'Please add estimated hours'],
+      min: [1, 'Estimated hours must be at least 1']
     },
     category: {
       type: String,
       required: [true, 'Please add a category']
     },
-    estimatedHours: {
-      type: Number,
-      required: [true, 'Please add estimated hours']
+    creator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
     },
-    deadline: {
-      type: Date,
-      required: [true, 'Please add a deadline']
-    },
-    skills: {
-      type: [String],
-      default: []
+    claimant: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
     },
     submission: {
       content: String,
       submittedAt: Date,
-      files: [String],
-      feedback: String,
-      aiReview: {
-        score: Number,
-        feedback: String,
-        completion: String,
-        reviewedAt: Date
-      }
+      files: [String]
     },
-    review: {
-      rating: {
-        type: Number,
-        min: 1,
-        max: 5
-      },
-      comment: String,
-      reviewedAt: Date
+    rejectionReason: String,
+    createdAt: {
+      type: Date,
+      default: Date.now
     }
   }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
   });
-  
-  module.exports = mongoose.model('Task', TaskSchema);
+
+  // Index for better query performance
+  taskSchema.index({ status: 1, creator: 1, claimant: 1 });
+
+  Task = mongoose.model('Task', taskSchema);
+}
+
+// Debug log
+console.log('Task model defined:', Task);
+
+module.exports = { Task, TASK_STATUS };
