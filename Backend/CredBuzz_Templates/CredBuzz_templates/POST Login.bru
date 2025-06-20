@@ -1,0 +1,18 @@
+meta {
+  name: POST Login
+  type: http
+  seq: 5
+}
+
+post {
+  url: https://s72-vaibhav-capstone.onrender.com/api/auth/login
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "email":"rob@gmail.com",
+    "password":"rob0309"
+  }
+}
