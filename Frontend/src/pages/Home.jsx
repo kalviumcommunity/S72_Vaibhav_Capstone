@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-// import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import './Pages.css';
 
 const Home = () => {
@@ -23,7 +23,8 @@ const Home = () => {
               <Link to="/create-task" className="btn btn-secondary">Create Task</Link>
             </div>
             <div className="user-stats">
-              
+              <p>Join <strong>5,000+</strong> Users</p>
+              <p><strong>1,000+</strong> Tasks Completed</p>
             </div>
           </div>
           <div className="hero-image">
@@ -31,6 +32,27 @@ const Home = () => {
               src="/images/image.png" 
               alt="Task Exchange Illustration"
             />
+          </div>
+        </section>
+
+        {/* Benefits Section */}
+        <section className="benefits-section">
+          <div className="benefits-content">
+            <h2>Why Choose CredBuzz?</h2>
+            <div className="benefits-grid">
+              <div className="benefit-item">
+                <h3>Skill Exchange</h3>
+                <p>Trade your expertise for services you need. Whether you're a designer, developer, writer, or have any other skill, find the perfect exchange.</p>
+              </div>
+              <div className="benefit-item">
+                <h3>Community Driven</h3>
+                <p>Join a vibrant community of like-minded individuals who believe in the power of collaboration and mutual support.</p>
+              </div>
+              <div className="benefit-item">
+                <h3>Flexible Credits</h3>
+                <p>Our credit system makes it easy to value and exchange services fairly, ensuring everyone gets what they deserve.</p>
+              </div>
+            </div>
           </div>
         </section>
 
