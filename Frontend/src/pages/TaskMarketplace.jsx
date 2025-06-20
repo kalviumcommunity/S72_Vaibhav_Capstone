@@ -11,17 +11,12 @@ const TaskMarketplace = () => {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories'); // Default to All Categories
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedSkill, setSelectedSkill] = useState('');
   const [sortBy, setSortBy] = useState('newest'); // 'newest', 'oldest', 'credits-high', 'credits-low'
 
   const { user, token } = useAuth();
   const navigate = useNavigate();
 
   const categories = ['All Categories', 'Design', 'Development', 'Writing', 'Marketing', 'Data', 'Testing', 'Education', 'Administration', 'Other'];
-  // Statuses are handled internally by the API, so not explicitly shown as a filter in the UI from screenshot
-  const statuses = ['open', 'in-progress', 'submitted', 'completed', 'rejected', 'cancelled'];
-  const skills = ['React', 'Node.js', 'UI/UX', 'Graphic Design', 'Writing', 'SEO', 'Data Entry'];
 
   // Helper function to get full avatar URL
   const getAvatarUrl = (avatarPath) => {
@@ -44,13 +39,6 @@ const TaskMarketplace = () => {
       if (selectedCategory && selectedCategory !== 'All Categories') {
         url += `&category=${encodeURIComponent(selectedCategory)}`;
       }
-      if (selectedStatus) {
-        url += `&status=${encodeURIComponent(selectedStatus)}`;
-      }
-      if (selectedSkill) {
-        url += `&skill=${encodeURIComponent(selectedSkill)}`;
-      }
-
       // Add sorting parameter
       url += `&sortBy=${encodeURIComponent(sortBy)}`;
 
@@ -68,7 +56,8 @@ const TaskMarketplace = () => {
 
   useEffect(() => {
     fetchTasks();
-  }, [searchQuery, selectedCategory, selectedStatus, selectedSkill, sortBy, user, fetchTasks]);
+    // eslint-disable-next-line
+  }, [searchQuery, selectedCategory, sortBy, user]);
 
   const handleClaimTask = async (taskId) => {
     if (!user || !token) {

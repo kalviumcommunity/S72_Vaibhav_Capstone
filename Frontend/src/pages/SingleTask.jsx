@@ -6,7 +6,7 @@ import { API_URL } from '../config';
 import './Pages.css';
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'https://s72-vaibhav-capstone.onrender.com';
 
 const SingleTask = () => {
   const { id } = useParams();

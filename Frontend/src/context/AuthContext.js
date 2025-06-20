@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 
 // Set base URL for Axios requests
-axios.defaults.baseURL = 'http://localhost:5000'; // Set the base URL for all axios requests
+axios.defaults.baseURL = 'https://s72-vaibhav-capstone.onrender.com'; // Set the base URL for all axios requests
 
 const AuthContext = createContext(null);
 
