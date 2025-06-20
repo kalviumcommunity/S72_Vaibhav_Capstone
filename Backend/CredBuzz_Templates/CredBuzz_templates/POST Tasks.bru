@@ -1,0 +1,29 @@
+meta {
+  name: POST Tasks
+  type: http
+  seq: 7
+}
+
+post {
+  url: https://s72-vaibhav-capstone.onrender.com/api/tasks/
+  body: json
+  auth: inherit
+}
+
+headers {
+  content-type: application/json
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NTRmODcyYTExZGMxNmU4ZmFiMDcxYSIsImlhdCI6MTc1MDM5OTE0MiwiZXhwIjoxNzUyOTkxMTQyfQ.VHNYh7Wr_hj8GUb12fHpTCawUvXpoGzQhsWo3VAYtqE
+}
+
+body:json {
+  {
+    "title": "Sample Task Title",
+    "description": "This is a sample description for the task, describing what needs to be done.",
+    "credits": 10,
+    "skills": ["javascript", "nodejs"],
+    "deadline": "2024-12-31T23:59:59.000Z",
+    "estimatedHours": 5,
+    "category": "Web Development",
+    "creator": "60d21b4667d0d8992e610c85"
+  }
+}
