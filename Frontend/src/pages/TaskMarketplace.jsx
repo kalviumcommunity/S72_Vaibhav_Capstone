@@ -68,7 +68,7 @@ const TaskMarketplace = () => {
 
   useEffect(() => {
     fetchTasks();
-  }, [searchQuery, selectedCategory, selectedStatus, selectedSkill, sortBy, user]);
+  }, [searchQuery, selectedCategory, selectedStatus, selectedSkill, sortBy, user, fetchTasks]);
 
   const handleClaimTask = async (taskId) => {
     if (!user || !token) {
@@ -194,28 +194,6 @@ const TaskMarketplace = () => {
             const isClaimed = task.claimant;
             const showUpdateButton = isCreator && !isClaimed;
             const showClaimButton = !isCreator && !isClaimed;
-
-            const handleDeleteTask = async (taskId) => {
-              if (!window.confirm('Are you sure you want to delete this task?')) {
-                return;
-              }
-              try {
-                const response = await axios.delete(`${API_URL}/api/tasks/${taskId}`, {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                });
-                if (response.data.success) {
-                  fetchTasks(); // Refresh the task list
-                  alert('Task deleted successfully!');
-                } else {
-                  alert(response.data.message || 'Failed to delete task.');
-                }
-              } catch (error) {
-                console.error('Error deleting task:', error);
-                alert(error.response?.data?.message || 'Failed to delete task.');
-              }
-            };
 
             console.log(`Task ${task._id}: isCreator=${isCreator}, isClaimed=${isClaimed}, showUpdateButton=${showUpdateButton}, showClaimButton=${showClaimButton}`);
 

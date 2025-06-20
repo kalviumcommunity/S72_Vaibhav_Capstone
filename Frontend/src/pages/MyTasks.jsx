@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../config';
 import './Pages.css';
-import { FaEdit, FaTrash, FaCheck, FaTimes } from 'react-icons/fa';
 
 const MyTasks = () => {
   const [tasks, setTasks] = useState([]);

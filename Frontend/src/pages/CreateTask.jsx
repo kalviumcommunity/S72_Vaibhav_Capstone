@@ -86,10 +86,7 @@ const CreateTask = () => {
     }
   };
 
-  const handleSelectSuggestion = (suggestion) => {
-    setFormData({ ...formData, title: suggestion });
-    setTitleSuggestions([]); // Clear suggestions after selection
-  };
+ 
 
   const handleSelectTitleSuggestion = (suggestion) => {
     setFormData({ ...formData, title: suggestion });
@@ -305,7 +302,7 @@ const CreateTask = () => {
             </div>
             <div className="info-card-content">
               <p>If you have questions about creating tasks or how the platform works, check out our help center or contact support.</p>
-              <a href="#" className="btn btn-secondary help-link">Go to Help Center</a>
+              <button type="button" className="btn btn-secondary help-link">Go to Help Center</button>
             </div>
           </div>
         </div>
