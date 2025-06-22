@@ -1,133 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import styled from 'styled-components';
-
-const Nav = styled.nav`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--white);
-  color: var(--black);
-  padding: 0.8rem 2.5rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-`;
-
-const Brand = styled.div`
-  a {
-    color: var(--black);
-    font-size: 1.8rem;
-    font-weight: bold;
-    text-decoration: none;
-  }
-`;
-
-const NavList = styled.ul`
-  display: flex;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  align-items: center;
-  gap: 2.5rem;
-`;
-
-const NavItem = styled.li`
-  margin: 0;
-
-  a {
-    color: var(--black);
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 1.1rem;
-    transition: color 0.3s ease;
-    padding: 0.5rem 0;
-    position: relative;
-
-    &:hover {
-      color: var(--primary-color);
-    }
-
-    &::after {
-      content: '';
-      position: absolute;
-      width: 0;
-      height: 2px;
-      bottom: 0;
-      left: 0;
-      background-color: var(--primary-color);
-      transition: width 0.3s ease;
-    }
-
-    &:hover::after {
-      width: 100%;
-    }
-  }
-`;
-
-const CreditsDisplay = styled(NavItem)`
-  background-color: var(--black);
-  color: var(--white);
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  font-weight: 500;
-`;
-
-const AuthButtons = styled(NavItem)`
-  display: flex;
-  gap: 1rem;
-`;
-
-const Button = styled(Link)`
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.3s ease;
-
-  &.btn-primary {
-    background-color: var(--black);
-    color: var(--white);
-
-    &:hover {
-      background-color: var(--dark-gray);
-      transform: translateY(-2px);
-    }
-  }
-
-  &.btn-secondary {
-    background-color: transparent;
-    color: var(--black);
-    border: 2px solid var(--black);
-
-    &:hover {
-      background-color: var(--black);
-      color: var(--white);
-      transform: translateY(-2px);
-    }
-  }
-`;
-
-const LogoutButton = styled.button`
-  padding: 0.6rem 1.2rem;
-  border: 2px solid var(--black);
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: 500;
-  background-color: transparent;
-  color: var(--black);
-  transition: all 0.3s ease;
-
-  &:hover {
-    background-color: var(--black);
-    color: var(--white);
-    transform: translateY(-2px);
-  }
-`;
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -139,50 +12,66 @@ const Navbar = () => {
   };
 
   return (
-    <Nav>
-      <Brand>
-        <Link to="/">CredBuzz</Link>
-      </Brand>
-      <NavList>
-        <NavItem>
-          <Link to="/">Home</Link>
-        </NavItem>
-        <NavItem>
-          <Link to="/tasks">Task Marketplace</Link>
-        </NavItem>
-        {user && (
-          <>
-            <NavItem>
-              <Link to="/my-tasks">My Tasks</Link>
-            </NavItem>
-            <NavItem>
-              <Link to="/create-task">Create Task</Link>
-            </NavItem>
-          </>
-        )}
-        {user && (
-          <NavItem>
-            <Link to="/profile">Profile</Link>
-          </NavItem>
-        )}
-        {user && (
-          <CreditsDisplay>
-            Credits: {user.credits} ₵
-          </CreditsDisplay>
-        )}
-        {!user ? (
-          <AuthButtons>
-            <Button to="/login" className="btn-secondary">Login</Button>
-            <Button to="/register" className="btn-primary">Register</Button>
-          </AuthButtons>
-        ) : (
-          <AuthButtons>
-            <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
-          </AuthButtons>
-        )}
-      </NavList>
-    </Nav>
+    <header className="bg-white sticky top-0 z-50 border-b border-black shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16 items-center">
+          <div className="flex-shrink-0 flex items-center">
+            <Link to="/" className="text-2xl font-bold text-black">
+              CredBuzz
+            </Link>
+          </div>
+          
+          <nav className="hidden md:ml-10 md:flex items-center space-x-8">
+            <Link to="/" className="px-3 py-2 text-sm font-medium text-black hover:text-gray-700 transition-colors duration-200">
+              Home
+            </Link>
+            <Link to="/tasks" className="px-3 py-2 text-sm font-medium text-black hover:text-gray-700 transition-colors duration-200">
+              Task Marketplace
+            </Link>
+            {user && (
+              <Link to="/my-tasks" className="px-3 py-2 text-sm font-medium text-black hover:text-gray-700 transition-colors duration-200">
+                My Tasks
+              </Link>
+            )}
+            <Link to="/profile" className="px-3 py-2 text-sm font-medium text-black hover:text-gray-700 transition-colors duration-200">
+              Profile
+            </Link>
+          </nav>
+
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <>
+                <div className="bg-black text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm">
+                  Credits: {user.credits} ₵
+                </div>
+                <button 
+                  onClick={handleLogout}
+                  className="px-4 py-2 border border-black rounded-lg text-sm font-medium text-black hover:bg-gray-100 transition-colors duration-200"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link 
+                  to="/login" 
+                  className="px-4 py-2 text-sm font-medium text-black hover:text-gray-700 transition-colors duration-200"
+                >
+                  Sign in
+                </Link>
+                <Link 
+                  to="/register" 
+                  className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-900 transition-colors duration-200 shadow-sm"
+                >
+                  Get started
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
   );
 };
 
-export default Navbar; 
+export default Navbar;

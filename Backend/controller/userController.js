@@ -244,3 +244,26 @@ exports.getUsers = async (req, res) => {
       });
     }
   };
+
+// @desc    Get all tasks for the current user
+// @route   GET /api/users/my-tasks
+// @access  Private
+exports.getMyTasks = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    console.log('Fetching tasks for user:', userId);
+    const tasks = await Task.find({
+      $or: [
+        { creator: userId },
+        { claimant: userId }
+      ]
+    })
+    .populate('creator', 'name avatar')
+    .populate('claimant', 'name avatar')
+    .sort({ createdAt: -1 });
+    res.json({ success: true, tasks });
+  } catch (error) {
+    console.error('Error in getMyTasks:', error);
+    res.status(500).json({ success: false, message: 'Error fetching user tasks', error: error.message });
+  }
+};

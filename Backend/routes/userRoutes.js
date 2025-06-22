@@ -1,5 +1,5 @@
 const express = require('express');
-const { getUsers, getUser, updateProfile, uploadAvatar, getProfileStats } = require('../controller/userController');
+const { getUsers, getUser, updateProfile, uploadAvatar, getProfileStats, getMyTasks } = require('../controller/userController');
 const { protect } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
@@ -76,7 +76,8 @@ router.get('/user-stats', async (req, res) => {
   }
 });
 
-// Get user stats (protected route)
+// Protected routes
+router.get('/my-tasks', protect, getMyTasks);
 router.get('/profile-stats', protect, getProfileStats);
 
 // Public routes

@@ -1,10 +1,10 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 
+const AuthContext = createContext(null);
+
 // Set base URL for Axios requests
 axios.defaults.baseURL = 'https://s72-vaibhav-capstone.onrender.com'; // Set the base URL for all axios requests
-
-const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
