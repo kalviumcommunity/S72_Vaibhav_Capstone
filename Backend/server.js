@@ -23,7 +23,10 @@ uploadDirs.forEach(dir => {
 });
 
 // Use CORS middleware
-app.use(cors());
+app.use(cors({
+  origin: ['https://credbuzz.netlify.app'],
+  credentials: true // if you use cookies or authentication
+}));
 
 app.use(express.json());
 
