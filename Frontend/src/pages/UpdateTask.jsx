@@ -25,6 +25,7 @@ const UpdateTask = () => {
   const [loading, setLoading] = useState(true);
   const [taskCreatorId, setTaskCreatorId] = useState(null);
   const [isTaskClaimed, setIsTaskClaimed] = useState(false);
+  const [descSuggestions, setDescSuggestions] = useState([]);
 
   useEffect(() => {
     const fetchTaskDetails = async () => {
@@ -68,6 +69,21 @@ const UpdateTask = () => {
       setError('This task has been claimed and cannot be updated.');
     }
   }, [loading, user, taskCreatorId, isTaskClaimed]);
+
+  useEffect(() => {
+    const fetchDescSuggestions = async () => {
+      if (formData.description.length > 10) {
+        try {
+          const res = await axios.get(`${API_URL}/api/tasks/autocomplete-descriptions?query=${encodeURIComponent(formData.description)}`);
+          if (res.data.success) setDescSuggestions(res.data.suggestions);
+        } catch {}
+      } else {
+        setDescSuggestions([]);
+      }
+    };
+    const debounce = setTimeout(fetchDescSuggestions, 600);
+    return () => clearTimeout(debounce);
+  }, [formData.description]);
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
@@ -214,6 +230,16 @@ const UpdateTask = () => {
                         required
                         className="block w-full rounded-md border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                       />
+                      {descSuggestions.length > 0 && (
+                        <div className="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-2">
+                          <div className="text-xs text-gray-600 mb-1">AI Suggestions:</div>
+                          <ul className="list-disc pl-5">
+                            {descSuggestions.map((s, i) => (
+                              <li key={i} className="cursor-pointer hover:text-black" onClick={() => setFormData({ ...formData, description: s })}>{s}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </div>
 

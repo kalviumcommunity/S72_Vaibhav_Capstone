@@ -24,8 +24,12 @@ uploadDirs.forEach(dir => {
 
 // Use CORS middleware
 app.use(cors({
-  origin: ['https://credbuzz.netlify.app'],
-  credentials: true // if you use cookies or authentication
+  origin: [
+    'http://localhost:5173', // Vite
+    'http://localhost:3000', // React
+    'https://credbuzz.netlify.app' // Production
+  ],
+  credentials: true
 }));
 
 app.use(express.json());
@@ -48,9 +52,9 @@ io.on('connection', (socket) => {
   socket.on('joinTaskRoom', (taskId) => {
     socket.join(taskId);
   });
-
-  socket.on('sendMessage', ({ taskId, message, user }) => {
-    io.to(taskId).emit('receiveMessage', { message, user, timestamp: new Date() });
+  socket.on('sendMessage', (msg) => {
+    // msg: { taskId, userId, userName, content, timestamp }
+    io.to(msg.taskId).emit('receiveMessage', msg);
   });
 });
 

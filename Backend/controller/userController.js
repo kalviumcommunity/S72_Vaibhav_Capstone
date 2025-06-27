@@ -267,3 +267,23 @@ exports.getMyTasks = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error fetching user tasks', error: error.message });
   }
 };
+
+// @desc    Get current user's profile
+// @route   GET /api/users/profile
+// @access  Private
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password -__v');
+    console.log('Fetched user in getProfile:', user);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    // Ensure credits is always present
+    const userObj = user.toObject();
+    userObj.credits = typeof userObj.credits === 'number' ? userObj.credits : 0;
+    res.status(200).json({ success: true, user: userObj });
+  } catch (error) {
+    console.error('getProfile error:', error);
+    res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+  }
+};

@@ -4,8 +4,24 @@ import axios from 'axios';
 import { API_URL } from '../config';
 import Layout from '../components/Layout';
 
+/**
+ * @typedef {Object} UserProfile
+ * @property {string} name
+ * @property {string} email
+ * @property {number} credits
+ * @property {string} avatar
+ * @property {string} bio
+ * @property {string[]} skills
+ * @property {number} tasksCompleted
+ * @property {number} tasksCreated
+ * @property {string} joinedDate
+ * @property {number} rating
+ * @property {number} ratingCount
+ */
+
 const Profile = () => {
   const { user: authUser, token, setUser } = useAuth();
+  /** @type {[UserProfile|null, Function]} */
   const [profileUser, setProfileUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,7 +43,9 @@ const Profile = () => {
         return;
       }
       try {
-        const response = await axios.get(`${API_URL}/api/auth/me`);
+        const response = await axios.get(`${API_URL}/api/users/profile`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setProfileUser(response.data.user);
         setEditFormData({
           name: response.data.user.name || '',
@@ -95,7 +113,7 @@ const Profile = () => {
             {/* Profile Card */}
             <div className="bg-white text-black rounded-xl p-8 text-center shadow-2xl relative border border-black">
               <div className="absolute top-4 right-4">
-                <button onClick={() => setIsEditing(!isEditing)} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-md">
+                <button onClick={() => setIsEditing(!isEditing)} className="text-white bg-gray-700 hover:bg-black-600 px-3 py-1 rounded-md">
                   {isEditing ? 'Cancel' : 'Edit Profile'}
                 </button>
               </div>

@@ -92,11 +92,6 @@ const getTasks = async (req, res) => {
         status: TASK_STATUS.OPEN,
         claimant: null
       };
-
-      // If user is logged in (and userId is valid), exclude their own tasks from available list
-      if (validUserId) {
-        filter.creator = { $ne: validUserId };
-      }
     } else if (validUserId) {
       // For My Tasks page - show only tasks where user is creator or claimant
       filter = {
@@ -313,21 +308,12 @@ const claimTask = async (req, res) => {
 const submitTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
-
     if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: 'Task not found'
-      });
+      return res.status(404).json({ success: false, message: 'Task not found' });
     }
-
     if (task.claimant.toString() !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to submit this task'
-      });
+      return res.status(403).json({ success: false, message: 'Not authorized to submit this task' });
     }
-
     // Handle file uploads
     upload(req, res, async function(err) {
       if (err) {
@@ -342,12 +328,36 @@ const submitTask = async (req, res) => {
         const content = req.body.content || '';
 
         // Update task with submission details
-        task.status = TASK_STATUS.SUBMITTED;
+        let filesArr = [];
+        if (req.files && Array.isArray(req.files)) {
+          filesArr = req.files.map(f => ({ path: f.path, originalname: f.originalname }));
+        } else if (req.file) {
+          filesArr = [{ path: req.file.path, originalname: req.file.originalname }];
+        }
         task.submission = {
           content: content,
-          submittedAt: Date.now(),
-          files: files
+          submittedAt: new Date(),
+          files: filesArr
         };
+        task.status = TASK_STATUS.SUBMITTED;
+
+        // AI Review logic
+        try {
+          const prompt = `You are an expert reviewer. Review the following task submission for quality and relevance.\nTitle: ${task.title}\nDescription: ${task.description}\nSubmission: ${task.submission.content}\nGive a short review (2-3 sentences) and a score out of 10. Format: Review: <text>\nScore: <number>.`;
+          const geminiResponse = await axios.post(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+            {
+              contents: [
+                { parts: [{ text: prompt }] }
+              ]
+            },
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+          const aiReview = geminiResponse.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          task.aiReview = aiReview;
+        } catch (err) {
+          task.aiReview = 'AI review unavailable.';
+        }
 
         // Save the task
         await task.save();
@@ -459,55 +469,32 @@ const markOfflineTaskComplete = async (req, res) => {
 const approveTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
-
     if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: 'Task not found'
-      });
+      return res.status(404).json({ success: false, message: 'Task not found' });
     }
-
     if (task.creator.toString() !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to approve this task'
-      });
+      return res.status(403).json({ success: false, message: 'Not authorized to approve this task' });
     }
-
-    // Update claimant's credits and task count
+    // Only transfer credits if approved
     const claimant = await User.findById(task.claimant);
     if (claimant) {
       claimant.credits += task.credits;
       claimant.tasksCompleted += 1;
       await claimant.save();
     }
-
-    // Update creator's credits
     const creator = await User.findById(task.creator);
     if (creator) {
-      creator.credits -= task.credits; // Deduct credits from creator
+      creator.credits -= task.credits;
       await creator.save();
     }
-
-    // Update task status to completed instead of deleting
     task.status = TASK_STATUS.COMPLETED;
     await task.save();
-
-    // Populate the task with creator and claimant details
     await task.populate('creator', 'name avatar rating');
     await task.populate('claimant', 'name avatar rating');
-
-    res.json({
-      success: true,
-      message: 'Task approved successfully',
-      task
-    });
+    res.json({ success: true, message: 'Task approved successfully', task });
   } catch (error) {
     console.error('Error approving task:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error approving task'
-    });
+    res.status(500).json({ success: false, message: 'Error approving task' });
   }
 };
 
@@ -517,35 +504,21 @@ const approveTask = async (req, res) => {
 const rejectTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
-
     if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: 'Task not found'
-      });
+      return res.status(404).json({ success: false, message: 'Task not found' });
     }
-
     if (task.creator.toString() !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to reject this task'
-      });
+      return res.status(403).json({ success: false, message: 'Not authorized to reject this task' });
     }
-
-    task.status = 'rejected';
+    task.status = TASK_STATUS.REJECTED;
     task.rejectionReason = req.body.reason;
     await task.save();
-
-    res.json({
-      success: true,
-      task
-    });
+    await task.populate('creator', 'name avatar rating');
+    await task.populate('claimant', 'name avatar rating');
+    res.json({ success: true, task });
   } catch (error) {
     console.error('Error rejecting task:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error rejecting task'
-    });
+    res.status(500).json({ success: false, message: 'Error rejecting task' });
   }
 };
 
@@ -612,9 +585,19 @@ const deleteTask = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Only open and unclaimed tasks can be deleted' });
     }
 
+    // Return credits to creator
+    const creator = await User.findById(task.creator);
+    if (creator) {
+      creator.credits += task.credits;
+      await creator.save();
+      console.log(`Returned ${task.credits} credits to user ${creator.email}. New balance: ${creator.credits}`);
+    } else {
+      console.error('Creator not found when deleting task:', task.creator);
+    }
+
     await task.deleteOne();
 
-    res.json({ success: true, message: 'Task deleted successfully' });
+    res.json({ success: true, message: 'Task deleted successfully and credits returned to creator.' });
 
   } catch (error) {
     console.error('Error deleting task:', error);
