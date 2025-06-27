@@ -6,7 +6,7 @@ import { API_URL } from '../config';
 import { io } from 'socket.io-client';
 import Layout from '../components/Layout';
 
-const SOCKET_URL =  'https://s72-vaibhav-capstone.onrender.com';
+const SOCKET_URL = API_URL;
 
 const SingleTask = () => {
   const { id } = useParams();
@@ -195,7 +195,7 @@ const SingleTask = () => {
   return (
     <Layout>
       <div className="bg-white min-h-screen">
-        <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="bg-white shadow-xl rounded-2xl p-8 mb-8 border border-black">
             <div className="flex justify-between items-start">
@@ -222,79 +222,134 @@ const SingleTask = () => {
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="bg-white shadow-xl rounded-2xl p-6 mb-8 flex flex-wrap items-center justify-center gap-4">
-            {isCreator && (
-              <>
-                <Link to={`/tasks/update/${id}`} className="btn-action bg-blue-600 hover:bg-blue-700">Update Task</Link>
-                <button onClick={() => handleAction('delete')} className="btn-action bg-red-600 hover:bg-red-700">Delete Task</button>
-                {task.status === 'submitted' && (
+          {/* Main Content + Chat Sidebar */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            {/* Main Content (2/3) */}
+            <div className="lg:col-span-2 flex flex-col gap-8">
+              {/* Action Buttons */}
+              <div className="bg-white shadow-xl rounded-2xl p-6 flex flex-wrap items-center justify-center gap-4">
+                {isCreator && task.status === 'open' && !task.claimant && (
+                  <button onClick={() => handleAction('delete')} className="btn-action bg-red-600 hover:bg-red-700">Delete Task</button>
+                )}
+                {isCreator && (
+                  <Link to={`/tasks/update/${id}`} className="btn-action bg-blue-600 hover:bg-blue-700">Update Task</Link>
+                )}
+                {isCreator && task.status === 'submitted' && (
                   <>
                     <button onClick={() => handleAction('approve')} className="btn-action bg-green-600 hover:bg-green-700">Approve Submission</button>
                     <button onClick={() => handleAction('reject')} className="btn-action bg-yellow-600 hover:bg-yellow-700">Request Changes</button>
                   </>
                 )}
-              </>
-            )}
-            {task.status === 'available' && !isCreator && (
-              <button onClick={() => handleAction('claim')} className="btn-action bg-indigo-600 hover:bg-indigo-700">Claim Task</button>
-            )}
-          </div>
-
-          {/* Task Details & Skills */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <div className="lg:col-span-2 bg-white shadow-xl rounded-2xl p-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Task Description</h2>
-              <p className="text-gray-700 whitespace-pre-wrap">{task.description}</p>
-            </div>
-            <div className="bg-white shadow-xl rounded-2xl p-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Required Skills</h2>
-              <div className="flex flex-wrap gap-2">
-                {task.skills.map(skill => (
-                  <span key={skill} className="bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">{skill}</span>
-                ))}
+                {task.status === 'open' && !isCreator && (
+                  <button onClick={() => handleAction('claim')} className="btn-action bg-indigo-600 hover:bg-indigo-700">Claim Task</button>
+                )}
               </div>
-            </div>
-          </div>
-          
-          {/* Submission Section */}
-          {isClaimant && ['claimed', 'rejected'].includes(task.status) && (
-            <div className="bg-white shadow-xl rounded-2xl p-8 mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Submit Your Work</h2>
-              {submitMessage && <p className="text-green-600 mb-4">{submitMessage}</p>}
-              {submitError && <p className="text-red-600 mb-4">{submitError}</p>}
-              <form onSubmit={handleSubmission} className="space-y-4">
-                <div>
-                  <label htmlFor="submissionContent" className="block text-sm font-medium text-gray-700">Notes / Comments</label>
-                  <textarea id="submissionContent" value={submissionContent} onChange={e => setSubmissionContent(e.target.value)} rows="4" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></textarea>
+
+              {/* Task Details & Skills */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white shadow-xl rounded-2xl p-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Task Description</h2>
+                  <p className="text-gray-700 whitespace-pre-wrap">{task.description}</p>
                 </div>
-                <div>
-                  <label htmlFor="submissionFiles" className="block text-sm font-medium text-gray-700">Attach Files</label>
-                  <input id="submissionFiles" type="file" multiple onChange={e => setSubmissionFiles(Array.from(e.target.files))} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                <div className="bg-white shadow-xl rounded-2xl p-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Required Skills</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {task.skills && task.skills.length > 0 ? (
+                      task.skills.map(skill => (
+                        <span key={skill} className="bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">{skill}</span>
+                      ))
+                    ) : (
+                      <span className="text-gray-500">No skills listed.</span>
+                    )}
+                  </div>
                 </div>
-                <button type="submit" className="btn-action bg-green-600 hover:bg-green-700 w-full">Submit for Approval</button>
-              </form>
-            </div>
-          )}
-          
-          {/* Submitted Work Viewer */}
-          {task.submission && (isCreator || isClaimant) && (
-            <div className="bg-white shadow-xl rounded-2xl p-8 mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Submitted Work</h2>
-              <p className="text-gray-700 mb-4 whitespace-pre-wrap">{task.submission.content || "No text content submitted."}</p>
-              {task.submission.files && task.submission.files.length > 0 && (
-                <div>
-                  <h3 className="font-semibold mb-2">Files:</h3>
-                  <ul className="list-disc pl-5">
-                    {task.submission.files.map(file => (
-                      <li key={file.path}><a href={`${API_URL}/${file.path}`} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{file.originalname}</a></li>
-                    ))}
-                  </ul>
+              </div>
+
+              {/* Submission Section */}
+              {isClaimant && (
+                <div className="bg-white shadow-xl rounded-2xl p-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Submit Your Work</h2>
+                  {submitMessage && <p className="text-green-600 mb-4">{submitMessage}</p>}
+                  {submitError && <p className="text-red-600 mb-4">{submitError}</p>}
+                  <form onSubmit={handleSubmission} className="space-y-4">
+                    <div>
+                      <label htmlFor="submissionContent" className="block text-sm font-medium text-gray-700">Notes / Comments</label>
+                      <textarea id="submissionContent" value={submissionContent} onChange={e => setSubmissionContent(e.target.value)} rows="4" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></textarea>
+                    </div>
+                    <div>
+                      <label htmlFor="submissionFiles" className="block text-sm font-medium text-gray-700">Attach Files</label>
+                      <input id="submissionFiles" type="file" multiple onChange={e => setSubmissionFiles(Array.from(e.target.files))} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                    </div>
+                    <button type="submit" className="btn-action bg-green-600 hover:bg-green-700 w-full">Submit for Approval</button>
+                  </form>
+                </div>
+              )}
+
+              {/* Submitted Work Viewer */}
+              {task.submission && (isCreator || isClaimant) && (
+                <div className="bg-white shadow-xl rounded-2xl p-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Submitted Work</h2>
+                  <p className="text-gray-700 mb-4 whitespace-pre-wrap">{task.submission.content || "No text content submitted."}</p>
+                  {task.submission.files && task.submission.files.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold mb-2">Files:</h3>
+                      <ul className="list-disc pl-5">
+                        {task.submission.files.map(file => (
+                          <li key={file.path}><a href={`${API_URL}/${file.path}`} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{file.originalname}</a></li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* AI Review Section */}
+              {task.status === 'submitted' && (isCreator || isClaimant) && (
+                <div className="bg-white shadow-xl rounded-2xl p-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">AI Review</h2>
+                  <p className="text-gray-700 whitespace-pre-wrap mb-2">{task.aiReview || 'AI review not available.'}</p>
+                </div>
+              )}
+
+              {/* Rejection Reason Section */}
+              {task.status === 'rejected' && isClaimant && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+                  <h2 className="text-lg font-bold text-red-700 mb-2">Why was your submission rejected?</h2>
+                  <p className="text-red-800">{task.rejectionReason || 'No reason provided.'}</p>
                 </div>
               )}
             </div>
-          )}
 
+            {/* Chat Sidebar (1/3) */}
+            {(isCreator || isClaimant) && (
+              <div className="bg-white shadow-xl rounded-2xl p-8 flex flex-col h-full min-h-[400px]">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Task Chat</h2>
+                <div className="flex-1 h-64 overflow-y-auto border rounded-lg p-4 mb-4 bg-gray-50">
+                  {messages.length === 0 ? (
+                    <p className="text-gray-500">No messages yet.</p>
+                  ) : (
+                    messages.map((msg, idx) => (
+                      <div key={idx} className={`mb-2 ${msg.userId === user._id ? 'text-right' : 'text-left'}`}>
+                        <span className="font-semibold text-black">{msg.userName}:</span> <span className="text-gray-800">{msg.content}</span>
+                        <span className="block text-xs text-gray-400">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                      </div>
+                    ))
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+                <form onSubmit={sendMessage} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    className="flex-grow px-4 py-2 border rounded-lg"
+                    placeholder="Type a message..."
+                  />
+                  <button type="submit" className="bg-black text-white px-4 py-2 rounded-lg">Send</button>
+                </form>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </Layout>

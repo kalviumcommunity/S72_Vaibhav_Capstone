@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../config';
 import Layout from '../components/Layout';
 
-const TaskCard = ({ task }) => (
+const TaskCard = ({ task, onDelete }) => (
     <div className="bg-white rounded-xl shadow-md border border-black p-6 flex flex-col">
         <div className="flex justify-between items-start mb-4">
             <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">{task.category}</span>
@@ -25,6 +25,7 @@ const TaskCard = ({ task }) => (
             <Link to={`/tasks/${task._id}`} className="block w-full text-center bg-gray-100 text-gray-800 font-medium py-3 rounded-lg mt-4 hover:bg-gray-200">
                 View Details
             </Link>
+            <button onClick={() => onDelete(task._id)} className="block w-full text-center bg-red-100 text-red-800 font-medium py-2 rounded-lg mt-2 hover:bg-red-200">Delete Task</button>
         </div>
     </div>
 );
@@ -63,6 +64,18 @@ const MyTasks = () => {
     fetchUserTasks();
   }, [user, token]);
 
+  const handleDelete = async (taskId) => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
+    try {
+      await axios.delete(`${API_URL}/api/tasks/${taskId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTasks(tasks.filter(t => t._id !== taskId));
+    } catch (err) {
+      alert('Failed to delete task.');
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -99,7 +112,7 @@ const MyTasks = () => {
 
           {!loading && !error && tasks.length > 0 && (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {tasks.map(task => <TaskCard key={task._id} task={task} />)}
+                  {tasks.map(task => <TaskCard key={task._id} task={task} onDelete={handleDelete} />)}
               </div>
           )}
         </div>

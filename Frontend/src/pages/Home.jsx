@@ -17,27 +17,31 @@ const Home = () => {
     <Layout>
       {/* Hero Section */}
       <section className="py-24 sm:py-32 bg-white">
-        <div className="container mx-auto px-6 text-center">
-            <span className="text-black font-semibold tracking-wide uppercase">A New Way to Collaborate</span>
-            <h1 className="mt-4 text-4xl sm:text-6xl font-extrabold text-black leading-tight">
-              Exchange Skills &<br />Services with Credits
-            </h1>
-            <p className="mt-6 max-w-2xl mx-auto text-lg text-gray-900 leading-8">
+        <div className="container mx-auto px-6 ">
+          <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-12 ">
+            {/* Text Content */}
+            <div className="w-full lg:w-1/2 text-center lg:text-left bg-gray">
+              <span className="text-black font-semibold tracking-wide uppercase">A New Way to Collaborate</span>
+              <h1 className="mt-4 text-4xl sm:text-6xl font-extrabold text-black leading-tight">
+                Exchange Skills &<br />Services with Credits
+              </h1>
+              <p className="mt-6 max-w-2xl text-lg text-gray-900 leading-8 mx-auto lg:mx-0">
                 CredBuzz connects people who want to exchange skills, time, and services in a collaborative community. Create tasks, earn credits, and get things done.
-            </p>
-            <div className="mt-10 flex items-center justify-center space-x-4">
+              </p>
+              <div className="mt-10 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Link to="/tasks" className="px-8 py-4 bg-black text-white rounded-xl font-semibold hover:bg-gray-900 text-lg">
                   Browse Tasks
                 </Link>
                 <Link to="/create-task" className="px-8 py-4 bg-white text-black border border-black rounded-xl font-semibold hover:bg-gray-100 text-lg">
                   Create Task
                 </Link>
-            </div>
-             <div className="mt-12 flex items-center justify-center space-x-8 text-gray-800">
-                <span>Join <span className="font-bold text-black">5,000+</span> Users</span>
-                <span className="h-5 border-l border-gray-300"></span>
-                <span><span className="font-bold text-black">1,000+</span> Tasks Completed</span>
               </div>
+            </div>
+            {/* Image */}
+            <div className="w-full lg:w-1/2 flex justify-center items-center">
+              <img src="/Screenshot 2025-06-14 155650.png" alt="Hero" className="max-w-full h-auto rounded-xl shadow-lg" />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -46,13 +50,13 @@ const Home = () => {
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-4xl sm:text-5xl font-extrabold text-black mb-16">Why Choose CredBuzz?</h2>
           <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-            <FeatureCard title="Skill Exchange">
+            <FeatureCard title="Skill Exchange" icon={<svg className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" /></svg>}>
               Trade your expertise for services you need. Whether you're a designer, developer, writer, or have any other skill, find the perfect exchange.
             </FeatureCard>
-            <FeatureCard title="Community Driven">
+            <FeatureCard title="Community Driven" icon={<svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M17 8V6a4 4 0 10-8 0v2M3 8v6a9 9 0 0018 0V8" /></svg>}>
               Join a vibrant community of like-minded individuals who believe in the power of collaboration and mutual support.
             </FeatureCard>
-            <FeatureCard title="Flexible Credits">
+            <FeatureCard title="Flexible Credits" icon={<svg className="h-8 w-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" /></svg>}>
                 Our credit system makes it easy to value and exchange services fairly, ensuring everyone gets what they deserve.
             </FeatureCard>
           </div>

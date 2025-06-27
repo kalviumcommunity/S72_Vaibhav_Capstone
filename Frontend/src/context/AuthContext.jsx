@@ -1,42 +1,48 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 
 const AuthContext = createContext(null);
 
 // Set base URL for Axios requests
-axios.defaults.baseURL = 'https://s72-vaibhav-capstone.onrender.com'; // Set the base URL for all axios requests
+axios.defaults.baseURL = API_URL; // Set the base URL for all axios requests
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUserState] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
+
+  // Helper to persist user in localStorage
+  const setUser = (userObj) => {
+    setUserState(userObj);
+    if (userObj) {
+      localStorage.setItem('user', JSON.stringify(userObj));
+    } else {
+      localStorage.removeItem('user');
+    }
+  };
 
   useEffect(() => {
     const loadUser = async () => {
       if (token) {
-        console.log('Token exists, attempting to load user...');
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         try {
-          console.log('Making request to /api/auth/me...');
           const res = await axios.get('/api/auth/me');
-          console.log('Response from /api/auth/me:', res.data);
           if (res.data.success && res.data.user) {
-            setUser({
-              ...res.data.user,
-              _id: res.data.user.id
-            });
+            setUser({ ...res.data.user, _id: res.data.user.id });
+          } else if (localStorage.getItem('user')) {
+            setUser(JSON.parse(localStorage.getItem('user')));
           }
         } catch (err) {
-          console.error('Error loading user:', err);
-          console.error('Error details:', err.response?.data);
           localStorage.removeItem('token');
           setToken(null);
           setUser(null);
         }
+      } else if (localStorage.getItem('user')) {
+        setUser(JSON.parse(localStorage.getItem('user')));
       }
       setLoading(false);
     };
-
     loadUser();
   }, [token]);
 

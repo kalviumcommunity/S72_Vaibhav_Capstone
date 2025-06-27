@@ -22,6 +22,12 @@ const CreateTask = () => {
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
   const [userCredits, setUserCredits] = useState(0);
+  const [creditsError, setCreditsError] = useState(null);
+  const [descSuggestions, setDescSuggestions] = useState([]);
+  const [titleSuggestions, setTitleSuggestions] = useState([]);
+  const [titleSuggestionSelected, setTitleSuggestionSelected] = useState(false);
+  const [descSuggestionSelected, setDescSuggestionSelected] = useState(false);
+  const [descError, setDescError] = useState(null);
 
   useEffect(() => {
     if (!token) navigate('/login');
@@ -31,21 +37,65 @@ const CreateTask = () => {
         try {
           const config = { headers: { 'Authorization': `Bearer ${token}` } };
           const response = await axios.get(`${API_URL}/api/users/profile`, config);
-          setUserCredits(response.data.user.credits || 0);
+          console.log('Fetched user profile for credits:', response.data);
+          setUserCredits(response.data.user?.credits ?? 0);
+          setCreditsError(null);
         } catch (err) {
-          console.error('Error fetching user credits:', err);
+          setUserCredits(0);
+          setCreditsError('Could not fetch your credits. Please refresh or check your login.');
+          console.error('Error fetching user credits:', err, err?.response?.data);
         }
       }
     };
     fetchUserCredits();
   }, [user, token, navigate]);
 
+  useEffect(() => {
+    if (descSuggestionSelected) return;
+    const fetchDescSuggestions = async () => {
+      if (formData.description.length > 10) {
+        try {
+          const res = await axios.get(`${API_URL}/api/tasks/autocomplete-descriptions?query=${encodeURIComponent(formData.description)}`);
+          if (res.data.success) setDescSuggestions(res.data.suggestions);
+        } catch {}
+      } else {
+        setDescSuggestions([]);
+      }
+    };
+    const debounce = setTimeout(fetchDescSuggestions, 600);
+    return () => clearTimeout(debounce);
+  }, [formData.description, descSuggestionSelected]);
+
+  useEffect(() => {
+    if (titleSuggestionSelected) return;
+    const fetchTitleSuggestions = async () => {
+      if (formData.title.length > 2) {
+        try {
+          const res = await axios.get(`${API_URL}/api/tasks/autocomplete-titles?query=${encodeURIComponent(formData.title)}`);
+          if (res.data.success) setTitleSuggestions(res.data.suggestions);
+        } catch {}
+      } else {
+        setTitleSuggestions([]);
+      }
+    };
+    const debounce = setTimeout(fetchTitleSuggestions, 600);
+    return () => clearTimeout(debounce);
+  }, [formData.title, titleSuggestionSelected]);
+
   const handleChange = (e) => {
     const { name, value, type } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'number' ? Math.max(0, Number(value)) : value
-    });
+    if (name === 'description') {
+      setFormData({
+        ...formData,
+        [name]: value.slice(0, 1000)
+      });
+      setDescError(null);
+    } else {
+      setFormData({
+        ...formData,
+        [name]: type === 'number' ? Math.max(0, Number(value)) : value
+      });
+    }
   };
 
   const handleAddSkill = () => {
@@ -77,7 +127,11 @@ const CreateTask = () => {
       setMessage('Task created successfully!');
       setTimeout(() => navigate(`/tasks/${res.data.task._id}`), 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create task.');
+      if (err?.response?.data?.error?.includes('Description cannot be more than 1000 characters')) {
+        setDescError('Description cannot be more than 1000 characters. Please shorten your description.');
+      } else {
+        setError(err.response?.data?.message || 'Failed to create task.');
+      }
     }
   };
 
@@ -95,15 +149,82 @@ const CreateTask = () => {
             <div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-md border border-gray-100">
               {message && <div className="mb-6 bg-green-100 text-green-800 p-4 rounded-lg">{message}</div>}
               {error && <div className="mb-6 bg-red-100 text-red-800 p-4 rounded-lg">{error}</div>}
+              {creditsError && (
+                <div className="mb-4 bg-red-100 text-red-800 p-2 rounded-lg text-center">{creditsError}</div>
+              )}
+              {descError && (
+                <div className="mb-4 bg-red-100 text-red-800 p-2 rounded-lg text-center">{descError}</div>
+              )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
                     <label htmlFor="title" className="block text-sm font-medium text-gray-700">Task Title</label>
-                    <input type="text" name="title" id="title" required value={formData.title} onChange={handleChange} placeholder="e.g., Website Design for Small Business" className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800"/>
+                    <input type="text" name="title" id="title" required value={formData.title} onChange={e => {
+                      setFormData({ ...formData, title: e.target.value });
+                      if (titleSuggestionSelected && e.target.value === '') setTitleSuggestionSelected(false);
+                    }} placeholder="e.g., Website Design for Small Business" className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800"/>
+                    {titleSuggestions.length > 0 && (
+                      <div className="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-2">
+                        <ul className="list-none pl-0">
+                          {titleSuggestions.slice(0, 3).map((s, i) => (
+                            <li
+                              key={i}
+                              className="cursor-pointer px-3 py-2 rounded-md mb-1 bg-white hover:bg-indigo-50 border border-gray-200 text-gray-800 shadow-sm transition-colors"
+                              onClick={() => {
+                                setFormData({ ...formData, title: s });
+                                setTitleSuggestions([]);
+                                setTitleSuggestionSelected(true);
+                              }}
+                            >
+                              {s}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label htmlFor="description" className="block text-sm font-medium text-gray-700">Task Description</label>
-                    <textarea name="description" id="description" rows="5" required value={formData.description} onChange={handleChange} placeholder="Provide a detailed description of what you need..." className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800"/>
+                    <textarea
+                      name="description"
+                      id="description"
+                      rows="5"
+                      required
+                      value={formData.description}
+                      onChange={handleChange}
+                      placeholder="Provide a detailed description of what you need..."
+                      maxLength={1000}
+                      className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800"
+                    />
+                    <div className="text-xs text-gray-500 mt-1 text-right">
+                      {formData.description.length}/1000 characters
+                      {formData.description.length > 950 && (
+                        <span className="text-red-500 ml-2">(Almost at limit!)</span>
+                      )}
+                      {formData.description.length > 100 && (
+                        <span className="text-yellow-600 ml-2">(Consider keeping your description concise for better clarity!)</span>
+                      )}
+                    </div>
+                    {descSuggestions.length > 0 && (
+                      <div className="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-2">
+                        <ul className="list-none pl-0">
+                          {descSuggestions.slice(0, 3).map((s, i) => (
+                            <li
+                              key={i}
+                              className="cursor-pointer px-3 py-2 rounded-md mb-1 bg-white hover:bg-indigo-50 border border-gray-200 text-gray-800 shadow-sm transition-colors"
+                              onClick={() => {
+                                setFormData({ ...formData, description: s.slice(0, 100) });
+                                setDescSuggestions([]);
+                                setDescSuggestionSelected(true);
+                                setDescError(null);
+                              }}
+                            >
+                              {s.length > 100 ? s.slice(0, 100) + '... (truncated)' : s}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

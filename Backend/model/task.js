@@ -67,9 +67,16 @@ try {
     submission: {
       content: String,
       submittedAt: Date,
-      files: [String]
+      files: [{
+        path: String,
+        originalname: String
+      }]
     },
     rejectionReason: String,
+    aiReview: {
+      type: String,
+      default: ''
+    },
     createdAt: {
       type: Date,
       default: Date.now
