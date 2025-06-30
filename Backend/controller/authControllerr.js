@@ -79,3 +79,63 @@ exports.googleLogin = async (req, res) => {
     });
   }
 };
+
+// In-memory OTP store (for demo; use DB/Redis for production)
+const otpStore = {};
+
+// Generate random 6-digit OTP
+function generateOTP() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Send OTP email
+async function sendOTPEmail(email, otp) {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Your OTP for Password Reset',
+    text: `Your OTP is: ${otp}. It is valid for 10 minutes.`,
+  });
+}
+
+// @desc Request OTP for password reset
+// @route POST /api/auth/request-otp
+// @access Public
+exports.requestOTP = async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'User not found' });
+  }
+  const otp = generateOTP();
+  otpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000 };
+  await sendOTPEmail(email, otp);
+  res.json({ success: true, message: 'OTP sent to email' });
+};
+
+// @desc Reset password with OTP
+// @route POST /api/auth/reset-password
+// @access Public
+exports.resetPasswordWithOTP = async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  const record = otpStore[email];
+  if (!record || record.otp !== otp || Date.now() > record.expires) {
+    return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
+  }
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'User not found' });
+  }
+  user.password = newPassword;
+  await user.save();
+  delete otpStore[email];
+  res.json({ success: true, message: 'Password reset successful' });
+};
