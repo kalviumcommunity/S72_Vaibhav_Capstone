@@ -1,0 +1,10 @@
+// Socket.io chat logic (simple per-task room)
+io.on('connection', (socket) => {
+    socket.on('joinTaskRoom', (taskId) => {
+      socket.join(taskId);
+    });
+    socket.on('sendMessage', (msg) => {
+      // msg: { taskId, userId, userName, content, timestamp }
+      io.to(msg.taskId).emit('receiveMessage', msg);
+    });
+  });
