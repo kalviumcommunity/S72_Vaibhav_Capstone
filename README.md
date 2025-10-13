@@ -60,6 +60,35 @@ CredBuzz is a collaborative platform where users can exchange credits for tasks 
 - **Render**: For deploying the backend server.
 - **Vercel/Netlify**: For deploying the frontend.
 
+
+## AWS S3 Avatar Upload (Backend)
+
+This project includes optional support for storing user avatar uploads in AWS S3. The feature is optional — when S3 is not configured the backend falls back to saving uploaded avatars on the local filesystem under `Backend/uploads/avatars`.
+
+To enable S3 uploads, provide these environment variables in your backend environment (for local development place in `Backend/.env`):
+
+- `AWS_S3_BUCKET` - your S3 bucket name (e.g. `my-app-avatars`)
+- `AWS_REGION` - the AWS region for your bucket (e.g. `us-east-1`)
+- `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` - credentials for an IAM user with S3 PutObject permissions (for local testing). In production prefer IAM roles.
+
+Behavior and notes:
+- If `AWS_S3_BUCKET` and `AWS_REGION` are present the backend will configure multer to use memory storage and the avatar upload controller will upload images to S3 and save a public URL on the user document.
+- If those env vars are not present, the server uses disk storage and saves files to `./uploads/avatars` (served statically at `/uploads/*`).
+- The current implementation sets uploaded S3 objects to `public-read`. If your bucket blocks public ACLs you can either adjust the bucket policy or change the code to use presigned URLs instead (recommended for private objects).
+
+Quick local test (disk fallback):
+
+1. Ensure dependencies are installed: `cd Backend && npm install`
+2. Create uploads folder: `mkdir -p Backend/uploads/avatars` (or in PowerShell: `New-Item -ItemType Directory -Path .\Backend\uploads\avatars -Force`).
+3. Start the backend: `node server.js` (or `npm run dev`).
+4. POST a multipart/form-data request to `/api/users/upload-avatar` with field name `avatar` and an Authorization bearer token.
+
+Quick local test (S3 enabled):
+
+1. Set the environment variables above (or add them to `Backend/.env`) and restart the backend.
+2. POST to `/api/users/upload-avatar` as above. The response will include the S3 URL saved on the user object.
+
+If you want, I can add a short UI page to the frontend to test avatar uploads and demonstrate both flows.
 # Week 1-2: Project Setup
 - Initialize project repository and set up development environment.
 - Build a project roadmap (deliverables and deadlines for team members).

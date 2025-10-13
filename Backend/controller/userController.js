@@ -8,7 +8,7 @@ exports.getProfileStats = async (req, res) => {
   try {
     console.log('Attempting to fetch user with ID:', req.user.id);
     const user = await User.findById(req.user.id);
-    
+
     if (!user) {
       console.log('User not found for ID:', req.user.id);
       return res.status(404).json({
@@ -24,7 +24,7 @@ exports.getProfileStats = async (req, res) => {
     console.log('Created tasks count:', createdTasks);
 
     console.log('Counting completed tasks for user:', user._id);
-    const completedTasks = await Task.countDocuments({ 
+    const completedTasks = await Task.countDocuments({
       claimant: user._id,
       status: 'completed'
     });
@@ -61,189 +61,205 @@ exports.getProfileStats = async (req, res) => {
 // @desc    Get all users
 // @route   GET /api/users
 exports.getUsers = async (req, res) => {
-    try {
-      const users = await User.find().select('-__v');
-      
-      res.status(200).json({
-        success: true,
-        count: users.length,
-        data: users
-      });
-    } catch (error) {
-      res.status(500).json({
+  try {
+    const users = await User.find().select('-__v');
+
+    res.status(200).json({
+      success: true,
+      count: users.length,
+      data: users
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server Error',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Get single user
+// @route   GET /api/users/:id
+exports.getUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-__v');
+
+    if (!user) {
+      return res.status(404).json({
         success: false,
-        message: 'Server Error',
-        error: error.message
+        message: 'User not found'
       });
     }
-  };
-  
-  // @desc    Get single user
-  // @route   GET /api/users/:id
-  exports.getUser = async (req, res) => {
-    try {
-      const user = await User.findById(req.params.id).select('-__v');
-      
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
+
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server Error',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Update user profile
+// @route   PUT /api/users/profile
+// @access  Private
+exports.updateProfile = async (req, res) => {
+  try {
+    const fieldsToUpdate = {
+      name: req.body.name,
+      bio: req.body.bio,
+      skills: req.body.skills
+    };
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      fieldsToUpdate,
+      {
+        new: true,
+        runValidators: true
       }
-      
-      res.status(200).json({
-        success: true,
-        data: user
-      });
-    } catch (error) {
-      res.status(500).json({
+    );
+
+    if (!user) {
+      return res.status(404).json({
         success: false,
-        message: 'Server Error',
-        error: error.message
+        message: 'User not found'
       });
     }
-  };
-  
-  // @desc    Update user profile
-  // @route   PUT /api/users/profile
-  // @access  Private
-  exports.updateProfile = async (req, res) => {
-    try {
-      const fieldsToUpdate = {
-        name: req.body.name,
-        bio: req.body.bio,
-        skills: req.body.skills
-      };
-      
-      const user = await User.findByIdAndUpdate(
-        req.user.id,
-        fieldsToUpdate,
-        {
-          new: true,
-          runValidators: true
-        }
-      );
-      
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
-      }
-      
-      res.status(200).json({
-        success: true,
-        data: user
-      });
-    } catch (error) {
-      res.status(500).json({
+
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server Error',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Update user credits
+// @route   PUT /api/users/credits
+// @access  Private
+exports.updateCredits = async (req, res) => {
+  try {
+    const { operation, amount } = req.body;
+
+    if (!operation || !amount) {
+      return res.status(400).json({
         success: false,
-        message: 'Server Error',
-        error: error.message
+        message: 'Please provide operation (add/subtract) and amount'
       });
     }
-  };
-  
-  // @desc    Update user credits
-  // @route   PUT /api/users/credits
-  // @access  Private
-  exports.updateCredits = async (req, res) => {
-    try {
-      const { operation, amount } = req.body;
-      
-      if (!operation || !amount) {
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    if (operation === 'add') {
+      user.credits += amount;
+    } else if (operation === 'subtract') {
+      if (user.credits < amount) {
         return res.status(400).json({
           success: false,
-          message: 'Please provide operation (add/subtract) and amount'
+          message: 'Insufficient credits'
         });
       }
-      
-      const user = await User.findById(req.user.id);
-      
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
-      }
-      
-      if (operation === 'add') {
-        user.credits += amount;
-      } else if (operation === 'subtract') {
-        if (user.credits < amount) {
-          return res.status(400).json({
-            success: false,
-            message: 'Insufficient credits'
-          });
-        }
-        user.credits -= amount;
-      } else {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid operation. Use "add" or "subtract"'
-        });
-      }
-      
-      await user.save();
-      
-      res.status(200).json({
-        success: true,
-        data: {
-          credits: user.credits
-        }
-      });
-    } catch (error) {
-      res.status(500).json({
+      user.credits -= amount;
+    } else {
+      return res.status(400).json({
         success: false,
-        message: 'Server Error',
-        error: error.message
+        message: 'Invalid operation. Use "add" or "subtract"'
       });
     }
-  };
 
-  // @desc    Upload user avatar
-  // @route   POST /api/users/upload-avatar
-  // @access  Private
-  exports.uploadAvatar = async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          message: 'No file uploaded.'
-        });
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        credits: user.credits
       }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server Error',
+      error: error.message
+    });
+  }
+};
 
-      const user = await User.findById(req.user.id);
+// @desc    Upload user avatar
+// @route   POST /api/users/upload-avatar
+// @access  Private
+exports.uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded.' });
+    }
 
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found.'
-        });
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    // If AWS S3 is configured and multer used memoryStorage (file.buffer available), upload to S3
+    if (process.env.AWS_S3_BUCKET && process.env.AWS_REGION && req.file.buffer) {
+      const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+      const path = require('path');
+
+      const s3 = new S3Client({ region: process.env.AWS_REGION });
+      const key = `avatars/${req.user.id}-${Date.now()}${path.extname(req.file.originalname)}`;
+
+      try {
+        const params = {
+          Bucket: process.env.AWS_S3_BUCKET,
+          Key: key,
+          Body: req.file.buffer,
+          ContentType: req.file.mimetype,
+          ACL: 'public-read'
+        };
+
+        await s3.send(new PutObjectCommand(params));
+
+        // Construct the S3 public URL. This is a common public URL pattern.
+        const avatarUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+        user.avatar = avatarUrl;
+        await user.save();
+        return res.status(200).json({ success: true, message: 'Avatar uploaded to S3 successfully!', user });
+      } catch (s3err) {
+        console.error('S3 upload error:', s3err);
+        // continue to disk fallback
       }
+    }
 
-      // Construct the public URL for the avatar
-      // Assuming your server serves static files from '/public'
+    // Disk fallback (when multer saved file to disk)
+    if (req.file.path) {
       const avatarUrl = `/uploads/avatars/${req.file.filename}`;
-
       user.avatar = avatarUrl;
       await user.save();
-
-      res.status(200).json({
-        success: true,
-        message: 'Avatar uploaded successfully!',
-        user: user // Return the updated user object
-      });
-
-    } catch (error) {
-      console.error('Error uploading avatar:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Server Error',
-        error: error.message
-      });
+      return res.status(200).json({ success: true, message: 'Avatar uploaded successfully!', user });
     }
-  };
+
+    // If we reach here, we didn't save the file for some reason
+    return res.status(500).json({ success: false, message: 'Unable to process uploaded file' });
+  } catch (error) {
+    console.error('Error uploading avatar:', error);
+    return res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+  }
+};
 
 // @desc    Get all tasks for the current user
 // @route   GET /api/users/my-tasks
@@ -258,9 +274,9 @@ exports.getMyTasks = async (req, res) => {
         { claimant: userId }
       ]
     })
-    .populate('creator', 'name avatar')
-    .populate('claimant', 'name avatar')
-    .sort({ createdAt: -1 });
+      .populate('creator', 'name avatar')
+      .populate('claimant', 'name avatar')
+      .sort({ createdAt: -1 });
     res.json({ success: true, tasks });
   } catch (error) {
     console.error('Error in getMyTasks:', error);

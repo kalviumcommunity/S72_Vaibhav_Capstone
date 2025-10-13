@@ -9,29 +9,41 @@ const Task = require('../model/task');
 const router = express.Router();
 
 // Set up storage for uploaded files
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, './uploads/avatars'); // Directory for avatar uploads
-  },
-  filename: function (req, file, cb) {
-    cb(null, `${req.user.id}-${Date.now()}${path.extname(file.originalname)}`);
-  },
-});
-
-// Filter to allow only image files
+// Decide storage strategy: if AWS S3 is configured, use memory storage so files can
+// be uploaded to S3; otherwise fall back to disk storage under ./uploads/avatars
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image/')) {
+  if (file.mimetype && file.mimetype.startsWith('image/')) {
     cb(null, true);
   } else {
     cb(new Error('Only image files are allowed!'), false);
   }
 };
 
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-});
+let upload;
+if (process.env.AWS_S3_BUCKET && process.env.AWS_REGION) {
+  // Memory storage for direct S3 upload
+  const storage = multer.memoryStorage();
+  upload = multer({
+    storage,
+    fileFilter,
+    limits: { fileSize: 5 * 1024 * 1024 },
+  });
+} else {
+  // Local disk fallback
+  const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, './uploads/avatars'); // Directory for avatar uploads
+    },
+    filename: function (req, file, cb) {
+      cb(null, `${req.user.id}-${Date.now()}${path.extname(file.originalname)}`);
+    },
+  });
+  upload = multer({
+    storage,
+    fileFilter,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  });
+}
 
 // Get platform statistics (public route)
 router.get('/user-stats', async (req, res) => {
