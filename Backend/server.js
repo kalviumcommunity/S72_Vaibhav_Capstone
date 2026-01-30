@@ -60,10 +60,7 @@ io.on('connection', (socket) => {
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const conn = await mongoose.connect(MONGO_URI);
     console.log('Connected to database successfully!');
     
     // Load routes after database connection

@@ -20,7 +20,7 @@ const Home = () => {
         <div className="container mx-auto px-6 ">
           <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-12 ">
             {/* Text Content */}
-            <div className="w-full lg:w-1/2 text-center lg:text-left bg-gray">
+            <div className="w-full lg:w-1/2 text-center lg:text-left">
               <span className="text-black font-semibold tracking-wide uppercase">A New Way to Collaborate</span>
               <h1 className="mt-4 text-4xl sm:text-6xl font-extrabold text-black leading-tight">
                 Exchange Skills &<br />Services with Credits

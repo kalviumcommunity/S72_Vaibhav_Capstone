@@ -29,20 +29,26 @@ const UpdateTask = () => {
 
   useEffect(() => {
     const fetchTaskDetails = async () => {
+      if (!id) return;
+      
       try {
-        const response = await axios.get(`${API_URL}/api/tasks/${id}`);
+        const config = token ? {
+          headers: { 'Authorization': `Bearer ${token}` }
+        } : {};
+        
+        const response = await axios.get(`${API_URL}/api/tasks/${id}`, config);
         if (response.data.success) {
           const task = response.data.task;
           setFormData({
             title: task.title || '',
             description: task.description || '',
             credits: task.credits || 0,
-            deadline: task.deadline ? task.deadline.substring(0, 10) : '',
+            deadline: task.deadline ? new Date(task.deadline).toISOString().split('T')[0] : '',
             estimatedHours: task.estimatedHours || '',
             category: task.category || '',
           });
           setSkills(task.skills || []);
-          setTaskCreatorId(task.creator._id);
+          setTaskCreatorId(task.creator?._id || task.creator);
           setIsTaskClaimed(!!task.claimant);
           setLoading(false);
         } else {
@@ -50,16 +56,14 @@ const UpdateTask = () => {
           setLoading(false);
         }
       } catch (err) {
-        console.error('Error fetching task details:', err.response?.data?.message || err.message);
+        console.error('Error fetching task details:', err.response?.data || err.message);
         setError(err.response?.data?.message || 'Failed to fetch task details.');
         setLoading(false);
       }
     };
 
-    if (id) {
-      fetchTaskDetails();
-    }
-  }, [id]);
+    fetchTaskDetails();
+  }, [id, token]);
 
   useEffect(() => {
     if (!loading && user && taskCreatorId && user._id !== taskCreatorId) {
@@ -142,9 +146,14 @@ const UpdateTask = () => {
       };
 
       const res = await axios.put(`${API_URL}/api/tasks/${id}`, taskData, config);
-      setMessage('Task updated successfully!');
-      console.log(res.data);
-      navigate(`/tasks/${id}`);
+      if (res.data.success) {
+        setMessage('Task updated successfully!');
+        setTimeout(() => {
+          navigate(`/tasks/${id}`);
+        }, 1000);
+      } else {
+        setError(res.data.message || 'Failed to update task.');
+      }
     } catch (err) {
       console.error('Error updating task:', err.response?.data?.message || err.message);
       setError(err.response?.data?.message || 'Failed to update task.');
@@ -210,7 +219,7 @@ const UpdateTask = () => {
                         value={formData.title}
                         onChange={handleChange}
                         required
-                        className="block w-full rounded-md border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                        className="block w-full rounded-md border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-sm sm:leading-6"
                       />
                     </div>
                   </div>
@@ -228,7 +237,7 @@ const UpdateTask = () => {
                         value={formData.description}
                         onChange={handleChange}
                         required
-                        className="block w-full rounded-md border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                        className="block w-full rounded-md border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-sm sm:leading-6"
                       />
                       {descSuggestions.length > 0 && (
                         <div className="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-2">
@@ -255,7 +264,7 @@ const UpdateTask = () => {
                           value={formData.category}
                           onChange={handleChange}
                           required
-                          className="block w-full rounded-md border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          className="block w-full rounded-md border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-sm sm:leading-6"
                         >
                           <option value="">Select a category</option>
                           <option value="Design">Design</option>
@@ -281,7 +290,7 @@ const UpdateTask = () => {
                           value={formData.credits}
                           onChange={handleChange}
                           required
-                          className="block w-full rounded-md border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          className="block w-full rounded-md border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-sm sm:leading-6"
                         />
                       </div>
                     </div>
@@ -299,7 +308,7 @@ const UpdateTask = () => {
                           id="deadline"
                           value={formData.deadline}
                           onChange={handleChange}
-                          className="block w-full rounded-md border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          className="block w-full rounded-md border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-sm sm:leading-6"
                         />
                       </div>
                     </div>
@@ -316,7 +325,7 @@ const UpdateTask = () => {
                           placeholder="e.g., 5"
                           value={formData.estimatedHours}
                           onChange={handleChange}
-                          className="block w-full rounded-md border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          className="block w-full rounded-md border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-sm sm:leading-6"
                         />
                       </div>
                     </div>
@@ -330,21 +339,21 @@ const UpdateTask = () => {
                         value={skillsInput}
                         onChange={handleSkillInputChange}
                         placeholder="Add a skill..."
-                        className="block w-full rounded-md border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                        className="block w-full rounded-md border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-sm sm:leading-6"
                       />
                       <button
                         type="button"
                         onClick={handleAddSkill}
-                        className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                        className="rounded-md bg-black px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800"
                       >
                         Add
                       </button>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
                       {skills.map((skill, idx) => (
-                        <span key={idx} className="inline-flex items-center gap-x-2 rounded-full bg-indigo-100 px-3 py-1.5 text-sm font-medium text-indigo-700">
+                        <span key={idx} className="inline-flex items-center gap-x-2 rounded-full bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-800 border border-gray-300">
                           {skill}
-                          <button type="button" onClick={() => handleRemoveSkill(skill)} className="-mr-1.5 h-6 w-6 flex items-center justify-center rounded-full p-1 text-indigo-700 hover:bg-indigo-200">
+                          <button type="button" onClick={() => handleRemoveSkill(skill)} className="-mr-1.5 h-6 w-6 flex items-center justify-center rounded-full p-1 text-gray-700 hover:bg-gray-200">
                             <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -360,7 +369,7 @@ const UpdateTask = () => {
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:flex-initial"
+                      className="flex-1 rounded-md bg-black px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 sm:flex-initial"
                     >
                       Update Task
                     </button>
@@ -380,7 +389,7 @@ const UpdateTask = () => {
                     </p>
                     <button
                       onClick={() => navigate(`/tasks/${id}`)}
-                      className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                      className="rounded-md bg-black px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                     >
                       View Task Details
                     </button>

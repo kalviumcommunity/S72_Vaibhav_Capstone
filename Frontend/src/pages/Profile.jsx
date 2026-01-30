@@ -113,18 +113,18 @@ const Profile = () => {
             {/* Profile Card */}
             <div className="bg-white text-black rounded-xl p-8 text-center shadow-2xl relative border border-black">
               <div className="absolute top-4 right-4">
-                <button onClick={() => setIsEditing(!isEditing)} className="text-white bg-gray-700 hover:bg-black-600 px-3 py-1 rounded-md">
+                <button onClick={() => setIsEditing(!isEditing)} className="text-white bg-gray-800 hover:bg-gray-900 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                   {isEditing ? 'Cancel' : 'Edit Profile'}
                 </button>
               </div>
               
               <div className="relative inline-block mb-4">
                 <img
-                  className="h-24 w-24 rounded-full object-cover ring-4 ring-gray-700"
+                  className="h-24 w-24 rounded-full object-cover ring-4 ring-gray-200"
                   src={getAvatarUrl(profileUser.avatar)}
                   alt="User Avatar"
                 />
-                <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 h-8 w-8 bg-white text-gray-800 rounded-full flex items-center justify-center shadow-md cursor-pointer hover:bg-gray-100">
+                <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 h-8 w-8 bg-white text-gray-800 rounded-full flex items-center justify-center shadow-md cursor-pointer hover:bg-gray-100 border border-gray-200">
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 6.232z" /></svg>
                   <input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
                 </label>
@@ -137,23 +137,23 @@ const Profile = () => {
                     name="name"
                     value={editFormData.name}
                     onChange={handleEditChange}
-                    className="w-full bg-gray-700 text-white text-center text-2xl font-bold rounded-md py-2"
+                    className="w-full border border-gray-300 text-center text-2xl font-bold rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-gray-800"
                   />
                   <textarea
                     name="bio"
                     value={editFormData.bio}
                     onChange={handleEditChange}
-                    className="w-full bg-gray-700 text-white text-center rounded-md py-2"
+                    className="w-full border border-gray-300 text-center rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-gray-800"
                     rows="2"
                   ></textarea>
-                  <button type="submit" className="w-full bg-white text-gray-800 font-bold py-2 px-4 rounded-md hover:bg-gray-200">
+                  <button type="submit" className="w-full bg-gray-900 text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-800 transition-colors">
                     Save Changes
                   </button>
                 </form>
               ) : (
                 <>
-                  <h1 className="text-2xl font-bold">{profileUser.name}</h1>
-                  <p className="text-gray-300 mt-1">{profileUser.bio || 'No bio available.'}</p>
+                  <h1 className="text-2xl font-bold text-gray-900">{profileUser.name}</h1>
+                  <p className="text-gray-600 mt-1">{profileUser.bio || 'No bio available.'}</p>
                 </>
               )}
             </div>

@@ -72,8 +72,16 @@ const CreateTask = () => {
       if (formData.title.length > 2) {
         try {
           const res = await axios.get(`${API_URL}/api/tasks/autocomplete-titles?query=${encodeURIComponent(formData.title)}`);
-          if (res.data.success) setTitleSuggestions(res.data.suggestions);
-        } catch {}
+          if (res.data.success) {
+            setTitleSuggestions(res.data.suggestions || []);
+          } else {
+            console.warn('Title suggestions API returned success: false');
+            setTitleSuggestions([]);
+          }
+        } catch (error) {
+          console.error('Error fetching title suggestions:', error.response?.data || error.message);
+          setTitleSuggestions([]);
+        }
       } else {
         setTitleSuggestions([]);
       }

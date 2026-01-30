@@ -8,7 +8,11 @@ const AuthContext = createContext(null);
 axios.defaults.baseURL = API_URL; // Set the base URL for all axios requests
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUserState] = useState(null);
+  const [user, setUserState] = useState(() => {
+    // Initialize user from localStorage on mount
+    const cached = localStorage.getItem('user');
+    return cached ? JSON.parse(cached) : null;
+  });
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
@@ -24,24 +28,45 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const loadUser = async () => {
-      if (token) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        try {
-          const res = await axios.get('/api/auth/me');
-          if (res.data.success && res.data.user) {
-            setUser({ ...res.data.user, _id: res.data.user.id });
-          } else if (localStorage.getItem('user')) {
-            setUser(JSON.parse(localStorage.getItem('user')));
+      try {
+        if (token) {
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          
+          // First check if we have cached user in localStorage
+          const cachedUser = localStorage.getItem('user');
+          if (cachedUser) {
+            setUser(JSON.parse(cachedUser));
           }
-        } catch (err) {
-          localStorage.removeItem('token');
-          setToken(null);
-          setUser(null);
+          
+          // Then try to fetch fresh user data from API
+          try {
+            const res = await axios.get('/api/auth/me');
+            if (res.data.success && res.data.user) {
+              setUser({ ...res.data.user, _id: res.data.user.id });
+            }
+          } catch (err) {
+            console.error('Error fetching user from API:', err.message);
+            // If API fails but we have cached user, keep using it
+            if (!cachedUser) {
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              setToken(null);
+              setUser(null);
+              delete axios.defaults.headers.common['Authorization'];
+            }
+          }
+        } else {
+          // No token, but check if we have cached user (shouldn't normally happen)
+          const cachedUser = localStorage.getItem('user');
+          if (cachedUser) {
+            setUser(JSON.parse(cachedUser));
+          } else {
+            setUser(null);
+          }
         }
-      } else if (localStorage.getItem('user')) {
-        setUser(JSON.parse(localStorage.getItem('user')));
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     loadUser();
   }, [token]);
@@ -50,16 +75,18 @@ export const AuthProvider = ({ children }) => {
     try {
       if (token && userData) {
         // Google OAuth login
-        setToken(token);
         localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setToken(token);
         setUser(userData);
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         return { success: true };
       } else {
         // Regular email/password login
         const res = await axios.post('/api/auth/login', { email, password });
-        setToken(res.data.token);
         localStorage.setItem('token', res.data.token);
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+        setToken(res.data.token);
         setUser(res.data.user);
         axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
         return { success: true };
@@ -73,9 +100,11 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     try {
       const res = await axios.post('/api/auth/register', { name, email, password });
-      setToken(res.data.token);
       localStorage.setItem('token', res.data.token);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+      setToken(res.data.token);
       setUser(res.data.user);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
       return { success: true };
     } catch (err) {
       console.error('Registration failed:', err.response?.data?.message || err.message);
@@ -92,7 +121,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = { user, token, loading, login, register, logout, setUser };
 
-  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

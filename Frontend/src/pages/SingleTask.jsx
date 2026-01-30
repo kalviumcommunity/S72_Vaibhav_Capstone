@@ -232,7 +232,7 @@ const SingleTask = () => {
                   <button onClick={() => handleAction('delete')} className="btn-action bg-red-600 hover:bg-red-700">Delete Task</button>
                 )}
                 {isCreator && (
-                  <Link to={`/tasks/update/${id}`} className="btn-action bg-blue-600 hover:bg-blue-700">Update Task</Link>
+                  <Link to={`/edit-task/${id}`} className="btn-action bg-blue-600 hover:bg-blue-700">Update Task</Link>
                 )}
                 {isCreator && task.status === 'submitted' && (
                   <>
@@ -303,11 +303,14 @@ const SingleTask = () => {
                 </div>
               )}
 
-              {/* AI Review Section */}
-              {task.status === 'submitted' && (isCreator || isClaimant) && (
-                <div className="bg-white shadow-xl rounded-2xl p-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">AI Review</h2>
-                  <p className="text-gray-700 whitespace-pre-wrap mb-2">{task.aiReview || 'AI review not available.'}</p>
+              {/* AI Review Section - Only visible to creator for transparency */}
+              {task.status === 'submitted' && isCreator && (
+                <div className="bg-white shadow-xl rounded-2xl p-8 border-2 border-gray-200">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">AI Review</h2>
+                  <p className="text-sm text-gray-600 mb-4 italic">This review is only visible to you to help you make an informed decision.</p>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p className="text-gray-700 whitespace-pre-wrap">{task.aiReview || 'AI review not available.'}</p>
+                  </div>
                 </div>
               )}
 

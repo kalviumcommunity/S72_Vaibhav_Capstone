@@ -32,6 +32,11 @@ try {
       required: [true, 'Please add credit value'],
       min: [1, 'Credits must be at least 1']
     },
+    lockedCredits: {
+      type: Number,
+      default: 0,
+      min: [0, 'Locked credits cannot be negative']
+    },
     skills: [{
       type: String,
       required: true

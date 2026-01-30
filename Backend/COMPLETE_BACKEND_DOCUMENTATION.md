@@ -1573,7 +1573,7 @@ const getDescriptionSuggestions = async (req, res) => {
 
 ## 5. `middleware/auth.js`
 
-#### Purpose & Context
+### Purpose & Context
 
 This file contains middleware for **protecting routes** using JWT authentication.  
 It ensures that only authenticated users can access certain API endpoints.

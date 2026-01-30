@@ -215,19 +215,20 @@ const createTask = async (req, res) => {
       });
     }
 
-    // Create the task
+    // Create the task with locked credits
     const task = await Task.create({
       ...req.body,
-      creator: req.user.id
+      creator: req.user.id,
+      lockedCredits: req.body.credits // Lock the credits instead of deducting
     });
 
-    // Update creator's credits and tasksCreated count
-    creator.credits -= req.body.credits;
+    // Update creator's tasksCreated count (credits are now locked, not deducted)
     creator.tasksCreated += 1;
     await creator.save();
 
     res.status(201).json({
       success: true,
+      message: 'Task created successfully with locked credits. AI review will be available once submitted.',
       task
     });
   } catch (error) {
@@ -343,20 +344,46 @@ const submitTask = async (req, res) => {
 
         // AI Review logic
         try {
-          const prompt = `You are an expert reviewer. Review the following task submission for quality and relevance.\nTitle: ${task.title}\nDescription: ${task.description}\nSubmission: ${task.submission.content}\nGive a short review (2-3 sentences) and a score out of 10. Format: Review: <text>\nScore: <number>.`;
-          const geminiResponse = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-            {
-              contents: [
-                { parts: [{ text: prompt }] }
-              ]
-            },
-            { headers: { 'Content-Type': 'application/json' } }
-          );
-          const aiReview = geminiResponse.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          task.aiReview = aiReview;
+          if (!process.env.GEMINI_API_KEY) {
+            console.warn('GEMINI_API_KEY not set, skipping AI review');
+            task.aiReview = 'AI review unavailable - service not configured.';
+          } else {
+            const prompt = `You are an expert reviewer. Review the following task submission for quality and relevance.\nTitle: ${task.title}\nDescription: ${task.description}\nSubmission: ${task.submission.content}\nGive a short review (2-3 sentences) and a score out of 10. Format: Review: <text>\nScore: <number>.`;
+            
+            console.log('Calling Gemini API for AI review...');
+            console.log('API Key present:', !!process.env.GEMINI_API_KEY, 'Key length:', process.env.GEMINI_API_KEY?.length);
+            
+            const geminiResponse = await axios.post(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+              {
+                contents: [
+                  { parts: [{ text: prompt }] }
+                ]
+              },
+              { 
+                headers: { 
+                  'Content-Type': 'application/json'
+                },
+                timeout: 30000 // 30 second timeout
+              }
+            );
+            
+            const aiReview = geminiResponse.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            if (aiReview) {
+              console.log('AI review generated successfully');
+              task.aiReview = aiReview;
+            } else {
+              console.warn('No AI review text in Gemini response');
+              task.aiReview = 'AI review unavailable - no response from AI service.';
+            }
+          }
         } catch (err) {
-          task.aiReview = 'AI review unavailable.';
+          console.error('Error generating AI review:', {
+            message: err.message,
+            response: err.response?.data,
+            status: err.response?.status
+          });
+          task.aiReview = 'AI review unavailable - error contacting AI service.';
         }
 
         // Save the task
@@ -442,12 +469,19 @@ const markOfflineTaskComplete = async (req, res) => {
     task.status = 'completed';
     await task.save();
 
-    // Update user credits
+    // Update user credits using locked credits
     const claimant = await User.findById(task.claimant);
     if (claimant) {
-      claimant.credits += task.credits;
+      claimant.credits += task.lockedCredits;
       claimant.tasksCompleted += 1;
       await claimant.save();
+    }
+
+    // Deduct from creator's locked credits
+    const creator = await User.findById(task.creator);
+    if (creator) {
+      creator.credits -= task.lockedCredits;
+      await creator.save();
     }
 
     res.json({
@@ -478,20 +512,22 @@ const approveTask = async (req, res) => {
     // Only transfer credits if approved
     const claimant = await User.findById(task.claimant);
     if (claimant) {
-      claimant.credits += task.credits;
+      claimant.credits += task.lockedCredits; // Transfer locked credits to claimant
       claimant.tasksCompleted += 1;
       await claimant.save();
     }
     const creator = await User.findById(task.creator);
     if (creator) {
-      creator.credits -= task.credits;
+      creator.credits -= task.lockedCredits; // Deduct locked credits from creator
       await creator.save();
     }
+    // Clear locked credits and mark as completed
+    task.lockedCredits = 0;
     task.status = TASK_STATUS.COMPLETED;
     await task.save();
     await task.populate('creator', 'name avatar rating');
     await task.populate('claimant', 'name avatar rating');
-    res.json({ success: true, message: 'Task approved successfully', task });
+    res.json({ success: true, message: 'Task approved successfully. Credits transferred to claimant.', task });
   } catch (error) {
     console.error('Error approving task:', error);
     res.status(500).json({ success: false, message: 'Error approving task' });
@@ -510,12 +546,21 @@ const rejectTask = async (req, res) => {
     if (task.creator.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Not authorized to reject this task' });
     }
+    
+    // Refund locked credits to creator when rejected
+    const creator = await User.findById(task.creator);
+    if (creator && task.lockedCredits > 0) {
+      creator.credits += task.lockedCredits;
+      await creator.save();
+    }
+    
     task.status = TASK_STATUS.REJECTED;
     task.rejectionReason = req.body.reason;
+    task.lockedCredits = 0; // Clear locked credits
     await task.save();
     await task.populate('creator', 'name avatar rating');
     await task.populate('claimant', 'name avatar rating');
-    res.json({ success: true, task });
+    res.json({ success: true, message: 'Task rejected and credits refunded to creator.', task });
   } catch (error) {
     console.error('Error rejecting task:', error);
     res.status(500).json({ success: false, message: 'Error rejecting task' });
@@ -543,11 +588,22 @@ const cancelTask = async (req, res) => {
       });
     }
 
+    // Refund locked credits when task is cancelled
+    if (task.lockedCredits > 0) {
+      const creator = await User.findById(task.creator);
+      if (creator) {
+        creator.credits += task.lockedCredits;
+        await creator.save();
+      }
+    }
+
     task.status = 'cancelled';
+    task.lockedCredits = 0;
     await task.save();
 
     res.json({
       success: true,
+      message: 'Task cancelled successfully and locked credits refunded.',
       task
     });
   } catch (error) {
@@ -580,24 +636,24 @@ const deleteTask = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized to delete this task' });
     }
 
-    // Only allow deletion if task is OPEN and unclaimed
-    if (task.status !== TASK_STATUS.OPEN || task.claimant) {
-      return res.status(400).json({ success: false, message: 'Only open and unclaimed tasks can be deleted' });
+    // Don't allow deletion of completed tasks (to preserve payment history)
+    if (task.status === TASK_STATUS.COMPLETED) {
+      return res.status(400).json({ success: false, message: 'Cannot delete completed tasks. Please cancel first if needed.' });
     }
 
-    // Return credits to creator
+    // Return locked credits to creator if task is deleted
     const creator = await User.findById(task.creator);
-    if (creator) {
-      creator.credits += task.credits;
+    if (creator && task.lockedCredits > 0) {
+      creator.credits += task.lockedCredits;
       await creator.save();
-      console.log(`Returned ${task.credits} credits to user ${creator.email}. New balance: ${creator.credits}`);
-    } else {
+      console.log(`Returned ${task.lockedCredits} locked credits to user ${creator.email}. New balance: ${creator.credits}`);
+    } else if (!creator) {
       console.error('Creator not found when deleting task:', task.creator);
     }
 
     await task.deleteOne();
 
-    res.json({ success: true, message: 'Task deleted successfully and credits returned to creator.' });
+    res.json({ success: true, message: 'Task deleted successfully and locked credits returned to creator.' });
 
   } catch (error) {
     console.error('Error deleting task:', error);
@@ -631,14 +687,16 @@ const updateTask = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Only open and unclaimed tasks can be updated' });
     }
 
-    // Update task fields
-    task.title = req.body.title || task.title;
-    task.description = req.body.description || task.description;
-    task.credits = req.body.credits !== undefined ? req.body.credits : task.credits;
-    task.estimatedHours = req.body.estimatedHours || task.estimatedHours;
-    task.category = req.body.category || task.category;
-    task.skills = req.body.skills || task.skills;
-    // Note: deadline field was removed, so we won't update it here.
+    // Update task fields - only update if provided
+    if (req.body.title !== undefined) task.title = req.body.title;
+    if (req.body.description !== undefined) task.description = req.body.description;
+    if (req.body.credits !== undefined) task.credits = req.body.credits;
+    if (req.body.estimatedHours !== undefined) task.estimatedHours = req.body.estimatedHours;
+    if (req.body.category !== undefined) task.category = req.body.category;
+    if (req.body.skills !== undefined) task.skills = req.body.skills;
+    if (req.body.deadline !== undefined && req.body.deadline !== '') {
+      task.deadline = new Date(req.body.deadline);
+    }
 
     const updatedTask = await task.save();
 
@@ -656,13 +714,23 @@ const updateTask = async (req, res) => {
 const getTitleSuggestions = async (req, res) => {
   const { query } = req.query;
 
+  console.log('Title suggestions request received:', { query, length: query?.length });
+
   if (!query || query.length < 3) {
     return res.json({ success: true, suggestions: [] }); // Return empty for short queries
+  }
+
+  if (!process.env.GEMINI_API_KEY) {
+    console.error('GEMINI_API_KEY is not set');
+    return res.status(500).json({ success: false, message: 'AI service not configured' });
   }
 
   try {
     const prompt = `Generate 3-5 concise, relevant, and creative task title suggestions based on the following incomplete input, suitable for a task marketplace. Only provide the suggestions as a comma-separated list, without any introductory or concluding sentences. If no good suggestions, return nothing: ${query}`;
 
+    console.log('Calling Gemini API for title suggestions...');
+    console.log('API Key present:', !!process.env.GEMINI_API_KEY, 'Key length:', process.env.GEMINI_API_KEY?.length);
+    
     const geminiResponse = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
@@ -680,22 +748,35 @@ const getTitleSuggestions = async (req, res) => {
         headers: {
           'Content-Type': 'application/json',
         },
+        timeout: 30000 // 30 second timeout
       }
     );
 
+    console.log('Gemini API response received');
     const generatedText = geminiResponse.data.candidates?.[0]?.content?.parts?.[0]?.text;
     let suggestions = [];
 
     if (generatedText) {
       // Attempt to parse as a comma-separated list
       suggestions = generatedText.split(',').map(s => s.trim()).filter(s => s.length > 0);
+      console.log('Parsed suggestions:', suggestions);
+    } else {
+      console.warn('No generated text in Gemini response');
     }
     
     res.json({ success: true, suggestions });
 
   } catch (error) {
-    console.error('Error fetching title suggestions from Gemini API:', error.response?.data || error.message);
-    res.status(500).json({ success: false, message: 'Error fetching suggestions' });
+    console.error('Error fetching title suggestions from Gemini API:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error fetching suggestions',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
@@ -709,9 +790,17 @@ const getDescriptionSuggestions = async (req, res) => {
     return res.json({ success: true, suggestions: [] });
   }
 
+  if (!process.env.GEMINI_API_KEY) {
+    console.error('GEMINI_API_KEY is not set');
+    return res.status(500).json({ success: false, message: 'AI service not configured' });
+  }
+
   try {
     const prompt = `Generate 1-2 detailed and comprehensive task description suggestions based on the following incomplete input, suitable for a task marketplace. Focus on clarity, required deliverables, and any specific constraints. Only provide the suggestions as a numbered list, without any introductory or concluding sentences. If no good suggestions, return nothing: ${query}`;
 
+    console.log('Calling Gemini API for description suggestions...');
+    console.log('API Key present:', !!process.env.GEMINI_API_KEY, 'Key length:', process.env.GEMINI_API_KEY?.length);
+    
     const geminiResponse = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
@@ -729,22 +818,35 @@ const getDescriptionSuggestions = async (req, res) => {
         headers: {
           'Content-Type': 'application/json',
         },
+        timeout: 30000 // 30 second timeout
       }
     );
 
+    console.log('Gemini API response received for descriptions');
     const generatedText = geminiResponse.data.candidates?.[0]?.content?.parts?.[0]?.text;
     let suggestions = [];
 
     if (generatedText) {
       // Assuming numbered list, split by newline and remove numbering
       suggestions = generatedText.split(/\d+\.\s*/).map(s => s.trim()).filter(s => s.length > 0);
+      console.log('Parsed description suggestions:', suggestions);
+    } else {
+      console.warn('No generated text in Gemini response for descriptions');
     }
     
     res.json({ success: true, suggestions });
 
   } catch (error) {
-    console.error('Error fetching description suggestions from Gemini API:', error.response?.data || error.message);
-    res.status(500).json({ success: false, message: 'Error fetching suggestions' });
+    console.error('Error fetching description suggestions from Gemini API:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error fetching suggestions',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
