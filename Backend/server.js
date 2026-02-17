@@ -72,6 +72,48 @@ const connectDB = async () => {
     app.use('/api/users', userRoutes);
     app.use('/api/tasks', taskRoutes);
 
+    // Health check endpoint for UptimeRobot monitoring
+    app.get('/api/health', async (req, res) => {
+      try {
+        // Check database connection
+        const dbState = mongoose.connection.readyState;
+        const dbStatus = {
+          0: 'disconnected',
+          1: 'connected',
+          2: 'connecting',
+          3: 'disconnecting'
+        };
+
+        const healthCheck = {
+          status: dbState === 1 ? 'healthy' : 'unhealthy',
+          timestamp: new Date().toISOString(),
+          uptime: process.uptime(),
+          service: 'CredBuzz API',
+          database: {
+            status: dbStatus[dbState] || 'unknown',
+            connected: dbState === 1
+          }
+        };
+
+        if (dbState !== 1) {
+          return res.status(503).json(healthCheck);
+        }
+
+        res.status(200).json(healthCheck);
+      } catch (error) {
+        res.status(500).json({
+          status: 'error',
+          timestamp: new Date().toISOString(),
+          message: error.message
+        });
+      }
+    });
+
+    // Simple ping endpoint (lightweight for frequent checks)
+    app.get('/api/ping', (req, res) => {
+      res.status(200).send('pong');
+    });
+
     app.get('/', (req, res) => {
       res.send("Hello!");
     });
