@@ -192,13 +192,15 @@ const Home = () => {
             Thousands of community members are already exchanging skills and earning credits. Your next collaboration is one task away.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/register"
-              className="inline-flex items-center justify-center gap-2 px-10 py-4 bg-primary text-white font-nav font-semibold rounded hover:bg-primary-dark transition-all duration-300 text-sm uppercase tracking-wider"
-            >
-              Create Free Account
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+            {!user && (
+              <Link
+                to="/register"
+                className="inline-flex items-center justify-center gap-2 px-10 py-4 bg-primary text-white font-nav font-semibold rounded hover:bg-primary-dark transition-all duration-300 text-sm uppercase tracking-wider"
+              >
+                Create Free Account
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
             <Link
               to="/tasks"
               className="inline-flex items-center justify-center px-10 py-4 border border-white/20 text-white font-nav font-semibold rounded hover:border-primary hover:text-primary transition-all duration-300 text-sm uppercase tracking-wider"
