@@ -23,12 +23,12 @@ CredBuzz is a collaborative platform where users can exchange credits for tasks 
 ## Features
 
 1. **User Registration & Profile Management**: Users can create profiles, track their credits, and view their transaction history.
-2. **Task Creation & Assignment**: Users can create tasks and specify the number of credits required to complete them. Other users can claim these tasks based on their skills and availability.
-3. **Credit System**: Users earn credits for completing tasks and can use these credits to request services.
-4. **Task Marketplace**: A central hub where all available tasks are listed, allowing users to browse and select tasks that match their skills and interests.
-5. **Ratings & Reviews**: After a task is completed, users can rate and review each other, ensuring a trustworthy community.
-6. **AI-Powered Recommendations**: Using AI to suggest tasks to users based on their previous activities and preferences.
-7. **Messaging System**: Users can communicate with each other to clarify task details and coordinate work.
+2. **Auction-Based Task Assignment**: Tasks go through an open bidding phase — workers submit proposals with their credit ask and estimated days. The creator reviews all proposals and selects the best fit.
+3. **Credit Escrow System**: Credits are locked in escrow only when the creator selects a bidder, protecting both parties. Credits are released to the worker upon approval.
+4. **Task Marketplace**: A central hub where all open and bidding tasks are listed, allowing users to browse and submit proposals.
+5. **Real-Time Task Chat**: Once a worker is assigned, the creator and worker get a private Socket.io chat channel on the task page.
+6. **Ratings & Reviews**: After a task is completed, both parties can rate and review each other, maintaining community trust.
+7. **AI-Powered Task Assistance**: AI suggestions for task titles and descriptions while creating tasks, plus an AI review of submitted work to help creators make informed decisions.
 8. **Analytics & Reports**: Users can track their activity, credits earned and spent, and gain insights into their contributions.
 
 ### Additional Features that can be implemented:
@@ -37,28 +37,42 @@ CredBuzz is a collaborative platform where users can exchange credits for tasks 
 3. **Gamification**: Introducing leaderboards, and rewards to increase user participation.
 4. **Integration with Other Platforms**: Allowing users to sync their CredBuzz credits and tasks with other services like Google Calendar,etc.
 
+## Task Lifecycle / Workflow
+
+```
+OPEN  →  BIDDING  →  ASSIGNED  →  SUBMITTED  →  COMPLETED
+                                              ↘  REJECTED (creator requests changes)
+```
+
+1. **OPEN** — Task is created and visible on the marketplace. Anyone can submit a proposal.
+2. **BIDDING** — First proposal received; task enters bidding phase. More proposals accepted up to the creator's set maximum (`maxBidders`). Bidding closes automatically once the cap is hit.
+3. **ASSIGNED** — Creator selects a bidder. Credits are locked in escrow (deducted from creator's balance). The chosen worker and creator now have access to a private task chat.
+4. **SUBMITTED** — Worker submits their completed work (text + files). An AI review is generated for the creator.
+5. **COMPLETED** — Creator approves the submission. Escrowed credits are transferred to the worker.
+6. **REJECTED** — Creator requests changes with a reason. Worker can revise and re-submit.
+
+
 ## Tools & Technologies
 ### Frontend
 - **React.js**: For building a dynamic and responsive user interface.
-- **Material-UI**: For a consistent design and user experience.
+- **Tailwind CSS v4**: Utility-first styling with a dark theme throughout.
+- **Lucide React**: Icon library used across the UI.
+- **Socket.io-client**: For real-time task chat between creator and assigned worker.
 
 ### Backend
 - **Node.js**: For server-side logic.
 - **Express.js**: For building the API endpoints.
-- **MongoDB**: For the database, to store user profiles, tasks, and transactions.
+- **MongoDB / Mongoose**: For the database — stores users, tasks, bids, transactions, and chat messages.
 
 ### Authentication
 - **JWT**: For secure user authentication and session management.
 
-### Real-time Notifications
-- **Socket.io**: For real-time updates and notifications.
-
-### Messaging
-- **Firebase**: For real-time messaging and data syncing.
+### Real-time Communication
+- **Socket.io**: Per-task chat rooms for real-time messaging between creator and worker.
 
 ### Deployment
-- **Render**: For deploying the backend server.
-- **Vercel/Netlify**: For deploying the frontend.
+- **Render**: Backend server deployment.
+- **Vercel / Netlify**: Frontend deployment.
 
 
 ## AWS S3 Avatar Upload (Backend)

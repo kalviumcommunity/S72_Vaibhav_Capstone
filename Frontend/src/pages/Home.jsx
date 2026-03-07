@@ -3,13 +3,6 @@ import { Link } from 'react-router-dom';
 import { PlusCircle, Package, Coins, ArrowRight, ChevronDown, Palette, Laptop, PenLine, Megaphone, Video, BarChart2, BadgeDollarSign, GraduationCap } from 'lucide-react';
 import Layout from '../components/Layout';
 
-const STATS = [
-  { value: '500+',  label: 'Active Members' },
-  { value: '2,345', label: 'Tasks Completed' },
-  { value: '125K',  label: 'Credits Exchanged' },
-  { value: '98%',   label: 'Satisfaction Rate' },
-];
-
 const STEPS = [
   {
     icon: <PlusCircle className="w-6 h-6" />,
@@ -48,7 +41,7 @@ const Home = () => {
         {/* BG image */}
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+            src="/hero-bg.jpg"
             alt=""
             className="w-full h-full object-cover opacity-25"
           />
@@ -98,15 +91,24 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── STATS ─────────────────────────────────────────────────────── */}
-      <section className="py-16 bg-dark-lighter border-y border-white/5">
-        <div className="max-w-5xl mx-auto px-6 grid grid-cols-2 lg:grid-cols-4 gap-8">
-          {STATS.map((s) => (
-            <div key={s.label} className="text-center">
-              <div className="text-4xl font-heading font-bold text-primary mb-1">{s.value}</div>
-              <div className="text-sm text-white/50 font-nav uppercase tracking-wider">{s.label}</div>
-            </div>
-          ))}
+      {/* ── WHY CREDBUZZ ────────────────────────────────────────────── */}
+      <section className="py-14 bg-dark-lighter border-y border-white/5">
+        <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+          <div className="flex flex-col items-center gap-3 px-4">
+            <Coins className="w-8 h-8 text-primary" />
+            <h3 className="font-heading font-bold text-white text-base">Credit Escrow</h3>
+            <p className="text-white/50 text-sm leading-relaxed">Credits are locked in escrow when you select a bidder — funds only release once you approve the work.</p>
+          </div>
+          <div className="flex flex-col items-center gap-3 px-4 sm:border-x border-white/10">
+            <Package className="w-8 h-8 text-primary" />
+            <h3 className="font-heading font-bold text-white text-base">Auction-Style Bidding</h3>
+            <p className="text-white/50 text-sm leading-relaxed">Workers compete by submitting proposals with their credit ask and timeline. You pick the best fit.</p>
+          </div>
+          <div className="flex flex-col items-center gap-3 px-4">
+            <PlusCircle className="w-8 h-8 text-primary" />
+            <h3 className="font-heading font-bold text-white text-base">Skill-for-Skill Economy</h3>
+            <p className="text-white/50 text-sm leading-relaxed">No cash required. Earn credits by completing tasks, spend them on work you need done.</p>
+          </div>
         </div>
       </section>
 
