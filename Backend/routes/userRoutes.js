@@ -4,7 +4,7 @@ const { protect } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const User = require('../model/user');
-const Task = require('../model/task');
+const { Task } = require('../model/task');
 
 const router = express.Router();
 

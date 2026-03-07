@@ -5,6 +5,8 @@ const {
   getTask,
   createTask,
   claimTask,
+  placeBid,
+  selectBidder,
   submitTask,
   markOfflineTaskComplete,
   approveTask,
@@ -23,6 +25,8 @@ const router = express.Router();
 // Protected routes
 router.post('/', protect, createTask);
 router.put('/:id/claim', protect, claimTask);
+router.post('/:id/bid', protect, placeBid);
+router.put('/:id/select-bidder', protect, selectBidder);
 router.put('/:id/submit', protect, submitTask);
 router.put('/:id/mark-complete', protect, markOfflineTaskComplete);
 router.put('/:id/approve', protect, approveTask);

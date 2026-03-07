@@ -30,34 +30,53 @@ const Register = () => {
     }
     setLoading(false);
   };
-  
-  const handleGoogleSuccess = async (credentialResponse) => {
-    // This function needs to be adapted based on how you handle Google login
-    // For now, it's a placeholder.
-    console.log('Google login clicked');
-    setError('Google login is not implemented yet.');
-  };
 
   return (
-    <div className="bg-white min-h-screen flex flex-col items-center justify-center">
-      <div className="w-full max-w-md px-8 py-12">
-        <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900">Register for CredBuzz</h2>
-          <p className="mt-2 text-gray-600">Create your account to start finding and completing tasks.</p>
+    <div className="min-h-screen flex">
+      {/* Left: Dark Panel */}
+      <div className="hidden lg:flex lg:w-1/2 bg-dark relative items-center justify-center overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+            alt="Register background"
+            className="w-full h-full object-cover opacity-20"
+          />
         </div>
+        <div className="relative z-10 text-center px-12">
+          <Link to="/" className="text-4xl font-heading font-bold text-white mb-6 block">
+            Cred<span className="text-primary">Buzz</span>
+          </Link>
+          <p className="text-gray-400 text-lg leading-relaxed max-w-md">
+            Join our community and start exchanging skills with people around the world.
+          </p>
+        </div>
+      </div>
 
-        {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg my-6 text-center">
-                {error}
+      {/* Right: Form */}
+      <div className="flex-1 flex flex-col items-center justify-center bg-dark-lighter px-8 py-12">
+        <div className="w-full max-w-md">
+          <div className="lg:hidden mb-8 text-center">
+            <Link to="/" className="text-3xl font-heading font-bold text-white">
+              Cred<span className="text-primary">Buzz</span>
+            </Link>
+          </div>
+
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-heading font-bold text-white">Create Account</h2>
+            <p className="mt-2 text-white/55">Start finding and completing tasks today.</p>
+          </div>
+
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded mb-6 text-center text-sm">
+              {error}
             </div>
-        )}
+          )}
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              Name
-            </label>
-            <div className="mt-1">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-white/70 mb-1.5">
+                Name
+              </label>
               <input
                 id="name"
                 name="name"
@@ -66,16 +85,14 @@ const Register = () => {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
+                className="input"
               />
             </div>
-          </div>
-          
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <div className="mt-1">
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-white/70 mb-1.5">
+                Email
+              </label>
               <input
                 id="email"
                 name="email"
@@ -84,16 +101,14 @@ const Register = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
+                className="input"
               />
             </div>
-          </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <div className="mt-1">
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-white/70 mb-1.5">
+                Password
+              </label>
               <input
                 id="password"
                 name="password"
@@ -102,29 +117,27 @@ const Register = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
+                className="input"
               />
             </div>
-          </div>
 
-          <div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 disabled:opacity-50"
+              className="w-full py-3 px-4 bg-primary text-white font-semibold font-nav rounded hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 uppercase tracking-wider text-sm"
             >
-              {loading ? 'Registering...' : 'Register'}
+              {loading ? 'Registering...' : 'Create Account'}
             </button>
-          </div>
-        </form>
+          </form>
 
-        <div className="mt-8 text-center text-sm">
-          <p className="text-gray-600">
-            Already have an account?{' '}
-            <Link to="/login" className="font-medium text-gray-800 hover:text-gray-900">
-              Login here
-            </Link>
-          </p>
+          <div className="mt-8 text-center text-sm">
+            <p className="text-white/50">
+              Already have an account?{' '}
+              <Link to="/login" className="font-semibold text-primary hover:text-primary-dark transition-colors">
+                Login here
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

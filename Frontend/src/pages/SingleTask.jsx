@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../config';
 import { io } from 'socket.io-client';
 import Layout from '../components/Layout';
+import { CheckCircle } from 'lucide-react';
 
 const SOCKET_URL = API_URL;
 
@@ -19,6 +20,11 @@ const SingleTask = () => {
   const [submissionFiles, setSubmissionFiles] = useState([]);
   const [submitMessage, setSubmitMessage] = useState(null);
   const [submitError, setSubmitError] = useState(null);
+  const [bidMessage, setBidMessage] = useState('');
+  const [bidCredits, setBidCredits] = useState('');
+  const [bidDays, setBidDays] = useState('');
+  const [bidError, setBidError] = useState(null);
+  const [bidSuccess, setBidSuccess] = useState(false);
   const [messages, setMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const socketRef = useRef();
@@ -41,15 +47,22 @@ const SingleTask = () => {
   }, [id, token]);
 
   useEffect(() => {
-    socketRef.current = io(SOCKET_URL);
-    socketRef.current.emit('joinTaskRoom', id);
-    socketRef.current.on('receiveMessage', (msg) => {
+    const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
+    socketRef.current = socket;
+    socket.on('connect', () => {
+      socket.emit('joinTaskRoom', id);
+    });
+    socket.on('receiveMessage', (msg) => {
       setMessages((prev) => [...prev, msg]);
     });
     return () => {
-      socketRef.current.disconnect();
+      socket.disconnect();
     };
   }, [id]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleAction = async (action, payload = {}) => {
     if (!window.confirm(`Are you sure you want to ${action.replace('-', ' ')} this task?`)) return;
@@ -83,6 +96,39 @@ const SingleTask = () => {
 
     } catch (err) {
       alert(`Failed to ${action.replace('-', ' ')} task: ${err.response?.data?.message || err.message}`);
+    }
+  };
+
+  const handlePlaceBid = async (e) => {
+    e.preventDefault();
+    setBidError(null);
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/tasks/${id}/bid`,
+        { message: bidMessage, credits: Number(bidCredits) || 0, days: Number(bidDays) || 1 },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setTask(response.data.task);
+      setBidSuccess(true);
+      setBidMessage('');
+      setBidCredits('');
+      setBidDays('');
+    } catch (err) {
+      setBidError(err.response?.data?.message || 'Failed to place bid.');
+    }
+  };
+
+  const handleSelectBidder = async (bidderId) => {
+    if (!window.confirm('Select this bidder and assign the task to them?')) return;
+    try {
+      const response = await axios.put(
+        `${API_URL}/api/tasks/${id}/select-bidder`,
+        { bidderId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setTask(response.data.task);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to select bidder.');
     }
   };
 
@@ -120,15 +166,18 @@ const SingleTask = () => {
   };
 
   const renderTaskStatus = (status) => {
-    const baseClasses = "px-3 py-1 text-xs font-semibold rounded-full inline-block";
+    const baseClasses = "px-3 py-1 text-xs font-semibold font-nav rounded uppercase tracking-wider inline-block";
     const statusMap = {
-        available: "bg-green-100 text-green-800",
-        claimed: "bg-yellow-100 text-yellow-800",
-        submitted: "bg-blue-100 text-blue-800",
-        completed: "bg-purple-100 text-purple-800",
-        rejected: "bg-red-100 text-red-800"
+        'open':        'status-open',
+        'bidding':     'status-open',
+        'assigned':    'status-claimed',
+        'in-progress': 'status-claimed',
+        'submitted':   'status-submitted',
+        'completed':   'status-completed',
+        'rejected':    'status-rejected',
+        'cancelled':   'status-rejected',
     };
-    return <span className={`${baseClasses} ${statusMap[status] || 'bg-gray-100 text-gray-800'}`}>{status}</span>;
+    return <span className={`${baseClasses} ${statusMap[status] || 'bg-white/10 text-white/60'}`}>{status}</span>;
   };
 
   const handleFileDownload = async (fileUrl) => {
@@ -185,40 +234,57 @@ const SingleTask = () => {
     }
   };
 
-  if (loading) return <div className="text-center py-20">Loading...</div>;
-  if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
-  if (!task) return <div className="text-center py-20">Task not found.</div>;
+  if (loading) return (
+    <Layout>
+      <div className="text-center py-20">
+        <div className="w-12 h-12 border-4 border-white/10 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-white/50">Loading task...</p>
+      </div>
+    </Layout>
+  );
+  if (error) return <Layout><div className="text-center py-20 text-red-400">{error}</div></Layout>;
+  if (!task) return <Layout><div className="text-center py-20 text-white/50">Task not found.</div></Layout>;
 
-  const isCreator = user?._id === task.creator._id;
-  const isClaimant = user?._id === task.claimant?._id;
+  const isCreator = user?._id?.toString() === task.creator?._id?.toString() ||
+                    user?._id?.toString() === task.creator?.toString();
+  const isClaimant = user?._id?.toString() === task.claimant?._id?.toString() ||
+                     user?._id?.toString() === task.claimant?.toString();
 
   return (
     <Layout>
-      <div className="bg-white min-h-screen">
+      <div className="min-h-screen bg-dark">
         <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="bg-white shadow-xl rounded-2xl p-8 mb-8 border border-black">
-            <div className="flex justify-between items-start">
+          {/* Header Card */}
+          <div className="card mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start gap-4">
               <div>
                 {renderTaskStatus(task.status)}
-                <h1 className="text-3xl font-extrabold text-black mt-2">{task.title}</h1>
-                <div className="mt-2 flex items-center gap-3">
-                  <img src={getAvatarUrl(task.creator.avatar)} alt={task.creator.name} className="w-10 h-10 rounded-full object-cover" />
+                <h1 className="text-3xl font-heading font-bold text-white mt-3">{task.title}</h1>
+                <div className="mt-3 flex items-center gap-3">
+                  <img src={getAvatarUrl(task.creator.avatar)} alt={task.creator.name} className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/30" />
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">{task.creator.name}</p>
-                    <p className="text-xs text-gray-500">Posted on {new Date(task.createdAt).toLocaleDateString()}</p>
+                    <p className="text-sm font-semibold text-white">{task.creator.name}</p>
+                    <p className="text-xs text-white/40">Posted on {new Date(task.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-3xl font-bold text-black">{task.credits}</p>
-                <p className="text-sm text-gray-700">CREDITS</p>
+                <p className="text-3xl font-heading font-bold text-primary">{task.credits}</p>
+                <p className="text-xs font-nav font-semibold text-white/40 uppercase tracking-wider">Credits</p>
               </div>
             </div>
-            <div className="mt-6 border-t border-gray-200 pt-6 text-sm text-gray-600 grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="flex items-center gap-2"><p><strong>Category:</strong> {task.category}</p></div>
-              <div className="flex items-center gap-2"><p><strong>Deadline:</strong> {task.deadline ? new Date(task.deadline).toLocaleDateString() : 'N/A'}</p></div>
-              <div className="flex items-center gap-2"><p><strong>Hours:</strong> ~{task.estimatedHours} hrs</p></div>
+            <div className="mt-6 border-t border-white/10 pt-6 text-sm text-white/55 grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div><span className="font-semibold text-white/80">Category:</span> {task.category}</div>
+              <div><span className="font-semibold text-white/80">Deadline:</span> {task.deadline ? new Date(task.deadline).toLocaleDateString() : 'N/A'}</div>
+              <div><span className="font-semibold text-white/80">Hours:</span> ~{task.estimatedHours} hrs</div>
+              {(task.status === 'open' || task.status === 'bidding') && task.maxBidders && (
+                <div>
+                  <span className="font-semibold text-white/80">Proposals:</span>{' '}
+                  <span className={task.bids?.length >= task.maxBidders ? 'text-red-400' : 'text-primary'}>
+                    {task.bids?.length || 0}/{task.maxBidders}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -227,12 +293,12 @@ const SingleTask = () => {
             {/* Main Content (2/3) */}
             <div className="lg:col-span-2 flex flex-col gap-8">
               {/* Action Buttons */}
-              <div className="bg-white shadow-xl rounded-2xl p-6 flex flex-wrap items-center justify-center gap-4">
-                {isCreator && task.status === 'open' && !task.claimant && (
+              <div className="card flex flex-wrap items-center justify-center gap-3">
+                {isCreator && (task.status === 'open' || task.status === 'bidding') && !task.claimant && (
                   <button onClick={() => handleAction('delete')} className="btn-action bg-red-600 hover:bg-red-700">Delete Task</button>
                 )}
                 {isCreator && (
-                  <Link to={`/edit-task/${id}`} className="btn-action bg-blue-600 hover:bg-blue-700">Update Task</Link>
+                  <Link to={`/edit-task/${id}`} className="btn-action bg-white/10 hover:bg-white/20 text-white">Update Task</Link>
                 )}
                 {isCreator && task.status === 'submitted' && (
                   <>
@@ -240,26 +306,106 @@ const SingleTask = () => {
                     <button onClick={() => handleAction('reject')} className="btn-action bg-yellow-600 hover:bg-yellow-700">Request Changes</button>
                   </>
                 )}
-                {task.status === 'open' && !isCreator && (
-                  <button onClick={() => handleAction('claim')} className="btn-action bg-indigo-600 hover:bg-indigo-700">Claim Task</button>
+                {(task.status === 'open' || task.status === 'bidding') && !isCreator && user && (
+                  (() => {
+                    const userHasBid = task.bids?.some(
+                      b => (b.bidder?._id || b.bidder)?.toString() === user._id?.toString()
+                    );
+                    return userHasBid || bidSuccess ? (
+                      <span className="text-green-400 font-semibold text-sm flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4" /> Proposal submitted
+                      </span>
+                    ) : (
+                      <form onSubmit={handlePlaceBid} className="flex flex-col gap-2 w-full">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-xs text-white/50 mb-1">Your credit ask</label>
+                            <input
+                              type="number"
+                              value={bidCredits}
+                              onChange={e => setBidCredits(e.target.value)}
+                              placeholder="Credits"
+                              min="1"
+                              className="input text-sm"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-white/50 mb-1">Days to complete</label>
+                            <input
+                              type="number"
+                              value={bidDays}
+                              onChange={e => setBidDays(e.target.value)}
+                              placeholder="Days"
+                              min="1"
+                              className="input text-sm"
+                              required
+                            />
+                          </div>
+                        </div>
+                        <textarea
+                          value={bidMessage}
+                          onChange={e => setBidMessage(e.target.value)}
+                          placeholder="Describe your approach and why you're the right fit..."
+                          rows={2}
+                          className="input resize-none text-sm"
+                        />
+                        {bidError && <p className="text-red-400 text-xs">{bidError}</p>}
+                        <button type="submit" className="btn-action">Submit Proposal</button>
+                      </form>
+                    );
+                  })()
                 )}
               </div>
 
+              {/* Bids Panel — creator sees bids when task is open */}
+              {isCreator && (task.status === 'open' || task.status === 'bidding') && task.bids && task.bids.length > 0 && (
+                <div className="card">
+                  <h2 className="text-lg font-heading font-bold text-white mb-4">Proposals ({task.bids.length})</h2>
+                  <div className="space-y-4">
+                    {task.bids.map((bid) => (
+                      <div key={bid._id || bid.bidder?._id} className="flex items-start gap-4 p-4 bg-dark-lighter rounded-lg border border-white/10">
+                        <img
+                          src={getAvatarUrl(bid.bidder?.avatar)}
+                          alt={bid.bidder?.name}
+                          className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/30 flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-white text-sm">{bid.bidder?.name}</p>
+                          <div className="flex gap-4 mt-1 text-xs">
+                            {bid.credits > 0 && <span className="text-primary font-semibold">{bid.credits} credits</span>}
+                            {bid.days > 0 && <span className="text-white/50">{bid.days} day{bid.days !== 1 ? 's' : ''}</span>}
+                          </div>
+                          {bid.message && <p className="text-white/60 text-sm mt-1">{bid.message}</p>}
+                          <p className="text-white/30 text-xs mt-1">{new Date(bid.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <button
+                          onClick={() => handleSelectBidder(bid.bidder?._id)}
+                          className="btn-action flex-shrink-0 text-sm py-1.5 px-4"
+                        >
+                          Accept
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Task Details & Skills */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white shadow-xl rounded-2xl p-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Task Description</h2>
-                  <p className="text-gray-700 whitespace-pre-wrap">{task.description}</p>
+                <div className="card">
+                  <h2 className="text-lg font-heading font-bold text-white mb-4">Task Description</h2>
+                  <p className="text-white/60 whitespace-pre-wrap text-sm leading-relaxed">{task.description}</p>
                 </div>
-                <div className="bg-white shadow-xl rounded-2xl p-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Required Skills</h2>
+                <div className="card">
+                  <h2 className="text-lg font-heading font-bold text-white mb-4">Required Skills</h2>
                   <div className="flex flex-wrap gap-2">
                     {task.skills && task.skills.length > 0 ? (
                       task.skills.map(skill => (
-                        <span key={skill} className="bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">{skill}</span>
+                        <span key={skill} className="bg-primary/15 text-primary border border-primary/25 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">{skill}</span>
                       ))
                     ) : (
-                      <span className="text-gray-500">No skills listed.</span>
+                      <span className="text-white/40 text-sm">No skills listed.</span>
                     )}
                   </div>
                 </div>
@@ -267,18 +413,18 @@ const SingleTask = () => {
 
               {/* Submission Section */}
               {isClaimant && (
-                <div className="bg-white shadow-xl rounded-2xl p-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Submit Your Work</h2>
-                  {submitMessage && <p className="text-green-600 mb-4">{submitMessage}</p>}
-                  {submitError && <p className="text-red-600 mb-4">{submitError}</p>}
+                <div className="card">
+                  <h2 className="text-lg font-heading font-bold text-white mb-4">Submit Your Work</h2>
+                  {submitMessage && <p className="text-green-400 mb-4 text-sm">{submitMessage}</p>}
+                  {submitError && <p className="text-red-400 mb-4 text-sm">{submitError}</p>}
                   <form onSubmit={handleSubmission} className="space-y-4">
                     <div>
-                      <label htmlFor="submissionContent" className="block text-sm font-medium text-gray-700">Notes / Comments</label>
-                      <textarea id="submissionContent" value={submissionContent} onChange={e => setSubmissionContent(e.target.value)} rows="4" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></textarea>
+                      <label htmlFor="submissionContent" className="block text-sm font-medium text-white/70 mb-1">Notes / Comments</label>
+                      <textarea id="submissionContent" value={submissionContent} onChange={e => setSubmissionContent(e.target.value)} rows="4" className="input resize-y"></textarea>
                     </div>
                     <div>
-                      <label htmlFor="submissionFiles" className="block text-sm font-medium text-gray-700">Attach Files</label>
-                      <input id="submissionFiles" type="file" multiple onChange={e => setSubmissionFiles(Array.from(e.target.files))} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                      <label htmlFor="submissionFiles" className="block text-sm font-medium text-white/70 mb-1">Attach Files</label>
+                      <input id="submissionFiles" type="file" multiple onChange={e => setSubmissionFiles(Array.from(e.target.files))} className="mt-1 block w-full text-sm text-white/50 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary/15 file:text-primary hover:file:bg-primary/25 transition-all"/>
                     </div>
                     <button type="submit" className="btn-action bg-green-600 hover:bg-green-700 w-full">Submit for Approval</button>
                   </form>
@@ -287,15 +433,15 @@ const SingleTask = () => {
 
               {/* Submitted Work Viewer */}
               {task.submission && (isCreator || isClaimant) && (
-                <div className="bg-white shadow-xl rounded-2xl p-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Submitted Work</h2>
-                  <p className="text-gray-700 mb-4 whitespace-pre-wrap">{task.submission.content || "No text content submitted."}</p>
+                <div className="card">
+                  <h2 className="text-lg font-heading font-bold text-white mb-4">Submitted Work</h2>
+                  <p className="text-white/60 mb-4 whitespace-pre-wrap text-sm">{task.submission.content || "No text content submitted."}</p>
                   {task.submission.files && task.submission.files.length > 0 && (
                     <div>
-                      <h3 className="font-semibold mb-2">Files:</h3>
+                      <h3 className="font-semibold text-white/80 mb-2 text-sm">Files:</h3>
                       <ul className="list-disc pl-5">
                         {task.submission.files.map(file => (
-                          <li key={file.path}><a href={`${API_URL}/${file.path}`} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{file.originalname}</a></li>
+                          <li key={file.path}><a href={`${API_URL}/${file.path}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary-dark hover:underline text-sm">{file.originalname}</a></li>
                         ))}
                       </ul>
                     </div>
@@ -303,38 +449,39 @@ const SingleTask = () => {
                 </div>
               )}
 
-              {/* AI Review Section - Only visible to creator for transparency */}
+              {/* AI Review Section */}
               {task.status === 'submitted' && isCreator && (
-                <div className="bg-white shadow-xl rounded-2xl p-8 border-2 border-gray-200">
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">AI Review</h2>
-                  <p className="text-sm text-gray-600 mb-4 italic">This review is only visible to you to help you make an informed decision.</p>
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <p className="text-gray-700 whitespace-pre-wrap">{task.aiReview || 'AI review not available.'}</p>
+                <div className="card border border-primary/20">
+                  <h2 className="text-lg font-heading font-bold text-white mb-2">AI Review</h2>
+                  <p className="text-xs text-white/40 mb-4 italic">This review is only visible to you to help you make an informed decision.</p>
+                  <div className="bg-dark-lighter rounded-lg p-4 border border-white/10">
+                    <p className="text-white/60 whitespace-pre-wrap text-sm">{task.aiReview || 'AI review not available.'}</p>
                   </div>
                 </div>
               )}
 
-              {/* Rejection Reason Section */}
+              {/* Rejection Reason */}
               {task.status === 'rejected' && isClaimant && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-                  <h2 className="text-lg font-bold text-red-700 mb-2">Why was your submission rejected?</h2>
-                  <p className="text-red-800">{task.rejectionReason || 'No reason provided.'}</p>
+                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6">
+                  <h2 className="text-lg font-heading font-bold text-red-400 mb-2">Why was your submission rejected?</h2>
+                  <p className="text-red-300/80 text-sm">{task.rejectionReason || 'No reason provided.'}</p>
                 </div>
               )}
             </div>
 
             {/* Chat Sidebar (1/3) */}
             {(isCreator || isClaimant) && (
-              <div className="bg-white shadow-xl rounded-2xl p-8 flex flex-col h-full min-h-[400px]">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Task Chat</h2>
-                <div className="flex-1 h-64 overflow-y-auto border rounded-lg p-4 mb-4 bg-gray-50">
+              <div className="card flex flex-col h-full min-h-[400px]">
+                <h2 className="text-lg font-heading font-bold text-white mb-4">Task Chat</h2>
+                <div className="flex-1 h-64 overflow-y-auto border border-white/10 rounded-lg p-4 mb-4 bg-dark-lighter">
                   {messages.length === 0 ? (
-                    <p className="text-gray-500">No messages yet.</p>
+                    <p className="text-white/40 text-sm">No messages yet.</p>
                   ) : (
                     messages.map((msg, idx) => (
-                      <div key={idx} className={`mb-2 ${msg.userId === user._id ? 'text-right' : 'text-left'}`}>
-                        <span className="font-semibold text-black">{msg.userName}:</span> <span className="text-gray-800">{msg.content}</span>
-                        <span className="block text-xs text-gray-400">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                      <div key={idx} className={`mb-3 ${msg.userId === user._id ? 'text-right' : 'text-left'}`}>
+                        <span className="font-semibold text-white/80 text-sm">{msg.userName}:</span>{' '}
+                        <span className="text-white/60 text-sm">{msg.content}</span>
+                        <span className="block text-xs text-white/30 mt-0.5">{new Date(msg.timestamp).toLocaleTimeString()}</span>
                       </div>
                     ))
                   )}
@@ -345,10 +492,10 @@ const SingleTask = () => {
                     type="text"
                     value={chatInput}
                     onChange={e => setChatInput(e.target.value)}
-                    className="flex-grow px-4 py-2 border rounded-lg"
+                    className="input flex-grow text-sm"
                     placeholder="Type a message..."
                   />
-                  <button type="submit" className="bg-black text-white px-4 py-2 rounded-lg">Send</button>
+                  <button type="submit" className="bg-primary text-white px-5 py-2.5 rounded font-semibold font-nav hover:bg-primary-dark transition-all duration-300 text-sm">Send</button>
                 </form>
               </div>
             )}

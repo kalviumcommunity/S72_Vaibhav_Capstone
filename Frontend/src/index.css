@@ -1,64 +1,198 @@
 @import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* ============================================================
+   Dewi Design System — Tailwind v4 theme tokens
+   All custom utilities are derived from these CSS variables.
+   ============================================================ */
+@theme {
+  /* === Accent / brand === */
+  --color-primary:      #ff4a17;
+  --color-primary-dark: #e0400f;
 
+  /* === Light-mode leftovers (used sparingly) === */
+  --color-heading:      #273d4e;
+  --color-light-bg:     #f1f4fa;
+  --color-text-default: #444444;
+  --color-surface:      #ffffff;
+
+  /* === Dark backgrounds (main theme) === */
+  --color-dark:         #000910;
+  --color-dark-card:    #28323a;
+  --color-dark-lighter: #15222b;
+  --color-dark-nav:     #111f29;
+
+  /* Font families */
+  --font-heading: 'Raleway', sans-serif;
+  --font-body:    'Roboto', sans-serif;
+  --font-nav:     'Inter', sans-serif;
+
+  /* Shadows */
+  --shadow-dewi:       0 5px 25px rgba(0, 0, 0, 0.08);
+  --shadow-dewi-lg:    0 10px 40px rgba(0, 0, 0, 0.12);
+  --shadow-dewi-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* ============================================================
+   Base styles
+   ============================================================ */
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #ffffff;
-  color: #111827;
+  background-color: #000910;
+  color: #e5eaee;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Raleway', sans-serif;
+  color: #ffffff;
+  font-weight: 700;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #15222b; }
+::-webkit-scrollbar-thumb { background: #3a4f5c; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #ff4a17; }
+
+/* ============================================================
+   Dark-theme component utilities
+   ============================================================ */
+
+/* Card — dark glass tile */
+.card {
+  background-color: #28323a;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  padding: 1.5rem;
+}
+
+/* Dark form input */
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: #28323a;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 0.5rem;
+  color: #ffffff;
+  font-size: 0.9375rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input::placeholder { color: rgba(255,255,255,0.3); }
+.input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }
+.input:focus {
+  outline: none;
+  border-color: #ff4a17;
+  box-shadow: 0 0 0 2px rgba(255,74,23,0.25);
+}
+
+/* Section title block */
+.section-title { text-align: center; margin-bottom: 3rem; }
+.section-title .label {
+  display: block;
+  font-size: 0.75rem;
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ff4a17;
+  margin-bottom: 0.5rem;
+}
+.section-title h2 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-family: 'Raleway', sans-serif;
+  font-weight: 700;
+  color: #ffffff;
+}
+.section-title p {
+  color: rgba(255,255,255,0.55);
+  margin-top: 1rem;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Status pill helpers */
+.status-open      { background:rgba( 52,211,153,0.15); color:#6ee7b7; border:1px solid rgba(52,211,153,0.35); }
+.status-claimed   { background:rgba(251,191, 36,0.15); color:#fcd34d; border:1px solid rgba(251,191,36,0.35); }
+.status-submitted { background:rgba(139, 92,246,0.15); color:#c4b5fd; border:1px solid rgba(139,92,246,0.35); }
+.status-completed { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.55); border:1px solid rgba(255,255,255,0.12); }
+.status-rejected  { background:rgba(248, 113,113,0.15); color:#fca5a5; border:1px solid rgba(248,113,113,0.35); }
+
+/* ============================================================
+   Reusable button utilities
+   (defined with raw CSS so they never depend on @apply resolving
+    custom tokens before the theme block is processed)
+   ============================================================ */
 .btn-action {
-    @apply inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gray-900 hover:bg-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background-color: #ff4a17;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.btn-action:hover {
+  background-color: #e0400f;
+  transform: translateY(-1px);
 }
 
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
+  padding: 0.625rem 1.5rem;
+  border-radius: 4px;
+  font-size: 0.9375rem;
   font-weight: 600;
-  background-color: #111827;
+  font-family: 'Inter', sans-serif;
+  background-color: #ff4a17;
   color: white;
   border: none;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
 }
-
 .btn-primary:hover {
-  background-color: #1f2937;
+  background-color: #e0400f;
+  transform: translateY(-1px);
 }
 
 .btn-ghost {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
+  padding: 0.625rem 1.5rem;
+  border-radius: 4px;
+  font-size: 0.9375rem;
   font-weight: 500;
-  color: #374151;
+  font-family: 'Inter', sans-serif;
+  color: #273d4e;
   background: transparent;
-  border: 1px solid #d1d5db;
+  border: 2px solid #273d4e;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
 }
-
 .btn-ghost:hover {
-  background-color: #f9fafb;
-  border-color: #9ca3af;
+  background-color: #273d4e;
+  color: #ffffff;
 }

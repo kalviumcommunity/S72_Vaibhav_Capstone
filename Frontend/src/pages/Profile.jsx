@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { API_URL } from '../config';
 import Layout from '../components/Layout';
+import { Pencil } from 'lucide-react';
 
 /**
  * @typedef {Object} UserProfile
@@ -101,31 +102,38 @@ const Profile = () => {
     }
   };
 
-  if (loading) return <div className="text-center py-20">Loading profile...</div>;
-  if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
-  if (!profileUser) return <div className="text-center py-20">Please log in.</div>;
+  if (loading) return (
+    <Layout>
+      <div className="text-center py-20">
+        <div className="w-12 h-12 border-4 border-white/10 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-white/50">Loading profile...</p>
+      </div>
+    </Layout>
+  );
+  if (error) return <Layout><div className="text-center py-20 text-red-400">{error}</div></Layout>;
+  if (!profileUser) return <Layout><div className="text-center py-20 text-white/50">Please log in.</div></Layout>;
 
   return (
     <Layout>
-      <div className="bg-white min-h-screen">
+      <div className="min-h-screen bg-dark">
         <div className="container mx-auto px-6 py-12">
           <div className="max-w-xl mx-auto">
             {/* Profile Card */}
-            <div className="bg-white text-black rounded-xl p-8 text-center shadow-2xl relative border border-black">
+            <div className="card text-center relative">
               <div className="absolute top-4 right-4">
-                <button onClick={() => setIsEditing(!isEditing)} className="text-white bg-gray-800 hover:bg-gray-900 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                <button onClick={() => setIsEditing(!isEditing)} className="text-white bg-primary hover:bg-primary-dark px-4 py-2 rounded text-xs font-semibold font-nav transition-all duration-300 uppercase tracking-wider">
                   {isEditing ? 'Cancel' : 'Edit Profile'}
                 </button>
               </div>
               
               <div className="relative inline-block mb-4">
                 <img
-                  className="h-24 w-24 rounded-full object-cover ring-4 ring-gray-200"
+                  className="h-24 w-24 rounded-full object-cover ring-4 ring-primary/20"
                   src={getAvatarUrl(profileUser.avatar)}
                   alt="User Avatar"
                 />
-                <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 h-8 w-8 bg-white text-gray-800 rounded-full flex items-center justify-center shadow-md cursor-pointer hover:bg-gray-100 border border-gray-200">
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 6.232z" /></svg>
+                <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 h-8 w-8 bg-primary text-white rounded-full flex items-center justify-center shadow-md cursor-pointer hover:bg-primary-dark transition-all duration-300">
+                  <Pencil className="h-4 w-4" />
                   <input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
                 </label>
               </div>
@@ -137,57 +145,57 @@ const Profile = () => {
                     name="name"
                     value={editFormData.name}
                     onChange={handleEditChange}
-                    className="w-full border border-gray-300 text-center text-2xl font-bold rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-gray-800"
+                    className="input text-center text-2xl font-heading font-bold"
                   />
                   <textarea
                     name="bio"
                     value={editFormData.bio}
                     onChange={handleEditChange}
-                    className="w-full border border-gray-300 text-center rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-gray-800"
+                    className="input text-center"
                     rows="2"
                   ></textarea>
-                  <button type="submit" className="w-full bg-gray-900 text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-800 transition-colors">
+                  <button type="submit" className="w-full bg-primary text-white font-semibold font-nav py-2.5 px-4 rounded hover:bg-primary-dark transition-all duration-300 uppercase tracking-wider text-sm">
                     Save Changes
                   </button>
                 </form>
               ) : (
                 <>
-                  <h1 className="text-2xl font-bold text-gray-900">{profileUser.name}</h1>
-                  <p className="text-gray-600 mt-1">{profileUser.bio || 'No bio available.'}</p>
+                  <h1 className="text-2xl font-heading font-bold text-white">{profileUser.name}</h1>
+                  <p className="text-white/55 mt-1">{profileUser.bio || 'No bio available.'}</p>
                 </>
               )}
             </div>
 
             {/* Contact Information */}
-            <div className="bg-white rounded-xl p-8 mt-8 shadow-md border border-gray-100">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Contact Information</h2>
-              <div className="space-y-4 text-gray-700">
+            <div className="card mt-8">
+              <h2 className="text-xl font-heading font-bold text-white mb-6">Contact Information</h2>
+              <div className="space-y-4 text-white/60">
                 <div className="flex items-center">
-                  <span className="font-semibold w-24">Email:</span>
+                  <span className="font-semibold text-white/80 w-24">Email:</span>
                   <span>{profileUser.email}</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="font-semibold w-24">Joined:</span>
+                  <span className="font-semibold text-white/80 w-24">Joined:</span>
                   <span>{new Date(profileUser.createdAt).toLocaleDateString()}</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="font-semibold w-24">Credits:</span>
-                  <span>{profileUser.credits} ₵</span>
+                  <span className="font-semibold text-white/80 w-24">Credits:</span>
+                  <span className="text-primary font-bold">{profileUser.credits} ₵</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="font-semibold w-24">Rating:</span>
+                  <span className="font-semibold text-white/80 w-24">Rating:</span>
                   <span>{profileUser.rating || 'N/A'} / 5</span>
                 </div>
                 <div className="flex items-start">
-                  <span className="font-semibold w-24 mt-1">Skills:</span>
+                  <span className="font-semibold text-white/80 w-24 mt-1">Skills:</span>
                   <div className="flex flex-wrap gap-2">
                     {profileUser.skills && profileUser.skills.length > 0 ? (
                       profileUser.skills.map(skill => (
-                        <span key={skill} className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
+                        <span key={skill} className="bg-primary/15 text-primary border border-primary/25 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
                           {skill}
                         </span>
                       ))
-                    ) : <span className="text-gray-500">No skills listed.</span>}
+                    ) : <span className="text-white/40 text-sm">No skills listed.</span>}
                   </div>
                 </div>
               </div>

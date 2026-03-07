@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { API_URL } from '../config';
-// import './Pages.css';
 
 const ForgotPassword = () => {
   const [step, setStep] = useState(1);
@@ -44,39 +43,35 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center py-16 px-4">
+    <div className="min-h-screen bg-dark flex items-center justify-center py-16 px-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-block mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">
-              CredBuzz
+            <h1 className="text-3xl font-heading font-bold text-heading">
+              Cred<span className="text-primary">Buzz</span>
             </h1>
           </Link>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Reset your password</h2>
-          <p className="text-gray-600">Enter your email to receive a reset code</p>
+          <h2 className="text-2xl font-heading font-bold text-white mb-2">Reset your password</h2>
+          <p className="text-white/55">Enter your email to receive a reset code</p>
         </div>
 
         {/* Reset Card */}
-        <div className="bg-white border border-gray-200 rounded-xl shadow-md p-8">
+        <div className="bg-dark-card border border-white/10 rounded-xl p-8">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded mb-6">
               <div className="flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="font-medium">{error}</p>
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <p className="font-medium text-sm">{error}</p>
               </div>
             </div>
           )}
 
           {message && step !== 3 && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+            <div className="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded mb-6">
               <div className="flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <p className="font-medium">{message}</p>
+                <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                <p className="font-medium text-sm">{message}</p>
               </div>
             </div>
           )}
@@ -84,7 +79,7 @@ const ForgotPassword = () => {
           {step === 1 && (
             <form onSubmit={requestOTP} className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-white/70 mb-2">
                   Email address
                 </label>
                 <input
@@ -93,13 +88,13 @@ const ForgotPassword = () => {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent bg-white text-gray-900"
+                  className="input"
                   placeholder="Enter your email"
                 />
               </div>
-              <button 
-                type="submit" 
-                className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
+              <button
+                type="submit"
+                className="w-full bg-primary text-white py-3 rounded font-semibold font-nav hover:bg-primary-dark transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm"
                 disabled={loading}
               >
                 {loading ? 'Sending...' : 'Send Reset Code'}
@@ -110,7 +105,7 @@ const ForgotPassword = () => {
           {step === 2 && (
             <form onSubmit={resetPassword} className="space-y-4">
               <div>
-                <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="otp" className="block text-sm font-medium text-white/70 mb-2">
                   Reset Code
                 </label>
                 <input
@@ -119,12 +114,12 @@ const ForgotPassword = () => {
                   value={otp}
                   onChange={e => setOTP(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent bg-white text-gray-900"
+                  className="input"
                   placeholder="Enter the code from your email"
                 />
               </div>
               <div>
-                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="newPassword" className="block text-sm font-medium text-white/70 mb-2">
                   New Password
                 </label>
                 <input
@@ -134,16 +129,14 @@ const ForgotPassword = () => {
                   onChange={e => setNewPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent bg-white text-gray-900"
+                  className="input"
                   placeholder="Enter your new password"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Must be at least 6 characters long
-                </p>
+                <p className="text-xs text-white/40 mt-1">Must be at least 6 characters long</p>
               </div>
-              <button 
-                type="submit" 
-                className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
+              <button
+                type="submit"
+                className="w-full bg-primary text-white py-3 rounded font-semibold font-nav hover:bg-primary-dark transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm"
                 disabled={loading}
               >
                 {loading ? 'Resetting...' : 'Reset Password'}
@@ -153,14 +146,12 @@ const ForgotPassword = () => {
 
           {step === 3 && (
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
+              <div className="w-16 h-16 mx-auto mb-4 bg-green-500/15 border border-green-500/30 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-8 h-8 text-green-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Password Reset Successful!</h3>
-              <p className="text-gray-600 mb-6">Your password has been updated. You can now sign in with your new password.</p>
-              <Link to="/login" className="inline-block bg-gray-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors">
+              <h3 className="text-xl font-heading font-semibold text-white mb-2">Password Reset Successful!</h3>
+              <p className="text-white/55 mb-6">Your password has been updated. You can now sign in with your new password.</p>
+              <Link to="/login" className="inline-block bg-primary text-white px-6 py-3 rounded font-semibold font-nav hover:bg-primary-dark transition-all duration-300 uppercase tracking-wider text-sm">
                 Sign In
               </Link>
             </div>
@@ -168,12 +159,9 @@ const ForgotPassword = () => {
 
           {/* Back to Login */}
           <div className="text-center mt-6">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-white/50">
               Remember your password?{' '}
-              <Link 
-                to="/login" 
-                className="text-gray-900 hover:text-gray-700 font-medium"
-              >
+              <Link to="/login" className="text-primary hover:text-primary-dark font-semibold transition-colors">
                 Sign in
               </Link>
             </p>
@@ -182,9 +170,9 @@ const ForgotPassword = () => {
 
         {/* Footer */}
         <div className="text-center mt-8">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-white/30">
             Need help? Contact our{' '}
-            <Link to="/support" className="text-gray-900 hover:text-gray-700">
+            <Link to="/support" className="text-primary hover:text-primary-dark font-medium">
               support team
             </Link>
           </p>

@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 // Define status enum values
 const TASK_STATUS = {
   OPEN: 'open',
+  BIDDING: 'bidding',
+  ASSIGNED: 'assigned',
   IN_PROGRESS: 'in-progress',
   SUBMITTED: 'submitted',
   COMPLETED: 'completed',
@@ -82,6 +84,39 @@ try {
       type: String,
       default: ''
     },
+    maxBidders: {
+      type: Number,
+      default: 5,
+      min: [1, 'Must allow at least 1 bidder'],
+      max: [20, 'Cannot exceed 20 bidders']
+    },
+    bids: [
+      {
+        bidder: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true
+        },
+        credits: {
+          type: Number,
+          default: 0,
+          min: [0, 'Credits cannot be negative']
+        },
+        days: {
+          type: Number,
+          default: 1,
+          min: [1, 'Days must be at least 1']
+        },
+        message: {
+          type: String,
+          default: ''
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now
+        }
+      }
+    ],
     createdAt: {
       type: Date,
       default: Date.now

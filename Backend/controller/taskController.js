@@ -5,9 +5,6 @@ const axios = require('axios'); // Import axios
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const express = require('express');
-const { protect } = require('../middleware/auth');
-
 // Load environment variables from .env file
 require('dotenv').config();
 
@@ -54,7 +51,7 @@ console.log('Task model:', Task);
 const getAvailableTasks = async (req, res) => {
   try {
     const tasks = await Task.find({ 
-      status: TASK_STATUS.OPEN,
+      status: { $in: [TASK_STATUS.OPEN, TASK_STATUS.BIDDING] },
       claimant: null 
     })
     .sort({ createdAt: -1 });
@@ -89,7 +86,7 @@ const getTasks = async (req, res) => {
     // Handle 'available' filter for marketplace
     if (available === 'true') {
       filter = {
-        status: TASK_STATUS.OPEN,
+        status: { $in: [TASK_STATUS.OPEN, TASK_STATUS.BIDDING] },
         claimant: null
       };
     } else if (validUserId) {
@@ -162,6 +159,11 @@ const getTask = async (req, res) => {
         path: 'creator',
         select: 'name avatar rating',
         model: 'User'
+      })
+      .populate({
+        path: 'bids.bidder',
+        select: 'name avatar rating',
+        model: 'User'
       });
 
     if (!task) {
@@ -219,16 +221,16 @@ const createTask = async (req, res) => {
     const task = await Task.create({
       ...req.body,
       creator: req.user.id,
-      lockedCredits: req.body.credits // Lock the credits instead of deducting
+      lockedCredits: 0 // Credits locked later in escrow when a proposal is selected
     });
 
-    // Update creator's tasksCreated count (credits are now locked, not deducted)
+    // Update creator's tasksCreated count
     creator.tasksCreated += 1;
     await creator.save();
 
     res.status(201).json({
       success: true,
-      message: 'Task created successfully with locked credits. AI review will be available once submitted.',
+      message: 'Task created successfully. Credits will be locked once you select a proposal.',
       task
     });
   } catch (error) {
@@ -477,12 +479,8 @@ const markOfflineTaskComplete = async (req, res) => {
       await claimant.save();
     }
 
-    // Deduct from creator's locked credits
-    const creator = await User.findById(task.creator);
-    if (creator) {
-      creator.credits -= task.lockedCredits;
-      await creator.save();
-    }
+    // Creator credits were already deducted at proposal selection (escrow)
+    // No further deduction needed here
 
     res.json({
       success: true,
@@ -516,11 +514,7 @@ const approveTask = async (req, res) => {
       claimant.tasksCompleted += 1;
       await claimant.save();
     }
-    const creator = await User.findById(task.creator);
-    if (creator) {
-      creator.credits -= task.lockedCredits; // Deduct locked credits from creator
-      await creator.save();
-    }
+    // Creator credits were already deducted at proposal selection (escrow)
     // Clear locked credits and mark as completed
     task.lockedCredits = 0;
     task.status = TASK_STATUS.COMPLETED;
@@ -658,6 +652,121 @@ const deleteTask = async (req, res) => {
   } catch (error) {
     console.error('Error deleting task:', error);
     res.status(500).json({ success: false, message: 'Failed to delete task', error: error.message });
+  }
+};
+
+// @desc    Place a bid on a task
+// @route   POST /api/tasks/:id/bid
+// @access  Private
+const placeBid = async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid task ID format' });
+    }
+
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ success: false, message: 'Task not found' });
+
+    if (task.status !== TASK_STATUS.OPEN && task.status !== TASK_STATUS.BIDDING) {
+      return res.status(400).json({ success: false, message: 'This task is no longer accepting proposals' });
+    }
+
+    if (task.claimant) {
+      return res.status(400).json({ success: false, message: 'This task has already been assigned' });
+    }
+
+    if (task.creator.toString() === req.user._id.toString()) {
+      return res.status(400).json({ success: false, message: 'You cannot bid on your own task' });
+    }
+
+    const alreadyBid = task.bids.some(b => b.bidder.toString() === req.user._id.toString());
+    if (alreadyBid) {
+      return res.status(400).json({ success: false, message: 'You have already placed a bid on this task' });
+    }
+
+    if (task.maxBidders && task.bids.length >= task.maxBidders) {
+      return res.status(400).json({ success: false, message: `This task has reached its maximum number of proposals (${task.maxBidders})` });
+    }
+
+    const { message, credits, days } = req.body;
+    task.bids.push({ bidder: req.user._id, credits: Number(credits) || 0, days: Number(days) || 1, message: message || '' });
+
+    // Transition OPEN → BIDDING on first proposal
+    if (task.status === TASK_STATUS.OPEN) {
+      task.status = TASK_STATUS.BIDDING;
+    }
+    await task.save();
+
+    await task.populate('creator', 'name avatar rating');
+    await task.populate('claimant', 'name avatar rating');
+    await task.populate('bids.bidder', 'name avatar rating');
+
+    res.status(201).json({ success: true, message: 'Proposal submitted successfully', task });
+  } catch (error) {
+    console.error('Error placing bid:', error);
+    res.status(500).json({ success: false, message: 'Error placing bid' });
+  }
+};
+
+// @desc    Select a bidder and assign the task
+// @route   PUT /api/tasks/:id/select-bidder
+// @access  Private (creator only)
+const selectBidder = async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid task ID format' });
+    }
+
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ success: false, message: 'Task not found' });
+
+    if (task.creator.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Only the task creator can select a bidder' });
+    }
+
+    if (task.status !== TASK_STATUS.OPEN && task.status !== TASK_STATUS.BIDDING) {
+      return res.status(400).json({ success: false, message: 'Task is not accepting proposals' });
+    }
+
+    if (task.claimant) {
+      return res.status(400).json({ success: false, message: 'Task has already been assigned' });
+    }
+
+    const { bidderId } = req.body;
+    if (!bidderId || !mongoose.Types.ObjectId.isValid(bidderId)) {
+      return res.status(400).json({ success: false, message: 'Invalid bidder ID' });
+    }
+
+    const bidExists = task.bids.some(b => b.bidder.toString() === bidderId);
+    if (!bidExists) {
+      return res.status(404).json({ success: false, message: 'Selected user has not submitted a proposal for this task' });
+    }
+
+    // Lock credits in escrow by deducting from creator's balance now
+    const creator = await User.findById(task.creator);
+    if (!creator) {
+      return res.status(404).json({ success: false, message: 'Creator not found' });
+    }
+    if (creator.credits < task.credits) {
+      return res.status(400).json({ success: false, message: 'Insufficient credits to lock for this task' });
+    }
+    creator.credits -= task.credits;
+    await creator.save();
+
+    task.claimant = bidderId;
+    task.status = TASK_STATUS.ASSIGNED;
+    task.lockedCredits = task.credits;
+    task.claimedAt = Date.now();
+    await task.save();
+
+    await task.populate('creator', 'name avatar rating');
+    await task.populate('claimant', 'name avatar rating');
+    await task.populate('bids.bidder', 'name avatar rating');
+
+    res.json({ success: true, message: 'Proposal accepted. Credits locked in escrow. Worker has been assigned.', task });
+  } catch (error) {
+    console.error('Error selecting bidder:', error);
+    res.status(500).json({ success: false, message: 'Error selecting bidder' });
   }
 };
 
@@ -850,17 +959,6 @@ const getDescriptionSuggestions = async (req, res) => {
   }
 };
 
-const router = express.Router();
-
-// Public routes
-router.get('/available', getAvailableTasks);
-router.get('/', getTasks);
-router.get('/autocomplete-titles', getTitleSuggestions);
-router.get('/autocomplete-descriptions', getDescriptionSuggestions);
-
-// Protected routes
-router.post('/', protect, createTask);
-router.put('/:id/claim', protect, claimTask);
 
 module.exports = {
   getAvailableTasks,
@@ -868,6 +966,8 @@ module.exports = {
   getTask,
   createTask,
   claimTask,
+  placeBid,
+  selectBidder,
   submitTask,
   downloadFile,
   markOfflineTaskComplete,

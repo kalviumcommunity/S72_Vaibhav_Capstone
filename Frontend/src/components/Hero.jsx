@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { TrendingUp } from 'lucide-react';
 import Button from './Button';
 
 const Hero = () => {
@@ -83,9 +84,7 @@ const Hero = () => {
                 <div className="text-xs text-muted-foreground">Active Tasks</div>
                 <div className="text-2xl font-bold">2,345</div>
                 <div className="mt-1 flex items-center text-xs text-green-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
-                  </svg>
+                  <TrendingUp className="h-4 w-4" />
                   <span>+24% this month</span>
                 </div>
               </div>
@@ -95,9 +94,7 @@ const Hero = () => {
                 <div className="text-xs opacity-80">Total Credits</div>
                 <div className="text-2xl font-bold">125,400</div>
                 <div className="mt-1 flex items-center text-xs opacity-80">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
-                  </svg>
+                  <TrendingUp className="h-4 w-4" />
                   <span>Exchanged last week</span>
                 </div>
               </div>

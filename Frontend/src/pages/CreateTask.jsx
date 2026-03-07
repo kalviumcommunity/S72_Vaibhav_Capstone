@@ -5,6 +5,7 @@ import { API_URL } from '../config';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
+import { X, Check } from 'lucide-react';
 
 const CreateTask = () => {
   const { user, token } = useAuth();
@@ -16,6 +17,7 @@ const CreateTask = () => {
     deadline: '',
     estimatedHours: '',
     category: '',
+    maxBidders: '5',
   });
   const [skillsInput, setSkillsInput] = useState('');
   const [skills, setSkills] = useState([]);
@@ -143,41 +145,45 @@ const CreateTask = () => {
     }
   };
 
+  const inputClasses = "input";
+  const labelClasses = "block text-sm font-medium text-white/70 mb-1";
+  const suggestionItemClasses = "cursor-pointer px-3 py-2 rounded mb-1 bg-dark-lighter hover:bg-primary/10 border border-white/10 text-white/60 transition-all duration-200";
+
   return (
     <Layout>
-      <div className="bg-white min-h-screen">
+      <div className="min-h-screen bg-dark">
         <div className="container mx-auto px-6 py-12">
           <div className="text-center mb-10">
-            <h1 className="text-4xl font-bold text-black">Create a New Task</h1>
-            <p className="text-gray-900 mt-2">Describe what you need help with and how many credits you're offering.</p>
+            <h1 className="text-4xl font-heading font-bold text-white">Create a New Task</h1>
+            <p className="text-white/55 mt-2">Describe what you need help with and how many credits you're offering.</p>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-12">
             {/* Main Form */}
-            <div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-md border border-gray-100">
-              {message && <div className="mb-6 bg-green-100 text-green-800 p-4 rounded-lg">{message}</div>}
-              {error && <div className="mb-6 bg-red-100 text-red-800 p-4 rounded-lg">{error}</div>}
+            <div className="lg:col-span-2 card">
+              {message && <div className="mb-6 bg-green-500/10 border border-green-500/30 text-green-400 p-4 rounded">{message}</div>}
+              {error && <div className="mb-6 bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded">{error}</div>}
               {creditsError && (
-                <div className="mb-4 bg-red-100 text-red-800 p-2 rounded-lg text-center">{creditsError}</div>
+                <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 p-2 rounded text-center">{creditsError}</div>
               )}
               {descError && (
-                <div className="mb-4 bg-red-100 text-red-800 p-2 rounded-lg text-center">{descError}</div>
+                <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 p-2 rounded text-center">{descError}</div>
               )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-700">Task Title</label>
+                    <label htmlFor="title" className={labelClasses}>Task Title</label>
                     <input type="text" name="title" id="title" required value={formData.title} onChange={e => {
                       setFormData({ ...formData, title: e.target.value });
                       if (titleSuggestionSelected && e.target.value === '') setTitleSuggestionSelected(false);
-                    }} placeholder="e.g., Website Design for Small Business" className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800"/>
+                    }} placeholder="e.g., Website Design for Small Business" className={inputClasses}/>
                     {titleSuggestions.length > 0 && (
-                      <div className="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-2">
+                      <div className="mt-2 bg-dark-lighter border border-white/10 rounded p-2">
                         <ul className="list-none pl-0">
                           {titleSuggestions.slice(0, 3).map((s, i) => (
                             <li
                               key={i}
-                              className="cursor-pointer px-3 py-2 rounded-md mb-1 bg-white hover:bg-indigo-50 border border-gray-200 text-gray-800 shadow-sm transition-colors"
+                              className={suggestionItemClasses}
                               onClick={() => {
                                 setFormData({ ...formData, title: s });
                                 setTitleSuggestions([]);
@@ -192,7 +198,7 @@ const CreateTask = () => {
                     )}
                   </div>
                   <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">Task Description</label>
+                    <label htmlFor="description" className={labelClasses}>Task Description</label>
                     <textarea
                       name="description"
                       id="description"
@@ -202,24 +208,24 @@ const CreateTask = () => {
                       onChange={handleChange}
                       placeholder="Provide a detailed description of what you need..."
                       maxLength={1000}
-                      className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800"
+                      className={inputClasses}
                     />
-                    <div className="text-xs text-gray-500 mt-1 text-right">
+                    <div className="text-xs text-white/40 mt-1 text-right">
                       {formData.description.length}/1000 characters
                       {formData.description.length > 950 && (
-                        <span className="text-red-500 ml-2">(Almost at limit!)</span>
+                        <span className="text-red-400 ml-2">(Almost at limit!)</span>
                       )}
                       {formData.description.length > 100 && (
-                        <span className="text-yellow-600 ml-2">(Consider keeping your description concise for better clarity!)</span>
+                        <span className="text-yellow-400 ml-2">(Consider keeping your description concise for better clarity!)</span>
                       )}
                     </div>
                     {descSuggestions.length > 0 && (
-                      <div className="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-2">
+                      <div className="mt-2 bg-dark-lighter border border-white/10 rounded p-2">
                         <ul className="list-none pl-0">
                           {descSuggestions.slice(0, 3).map((s, i) => (
                             <li
                               key={i}
-                              className="cursor-pointer px-3 py-2 rounded-md mb-1 bg-white hover:bg-indigo-50 border border-gray-200 text-gray-800 shadow-sm transition-colors"
+                              className={suggestionItemClasses}
                               onClick={() => {
                                 setFormData({ ...formData, description: s.slice(0, 100) });
                                 setDescSuggestions([]);
@@ -237,46 +243,47 @@ const CreateTask = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <div>
-                          <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
-                          <select id="category" name="category" required value={formData.category} onChange={handleChange} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800 bg-white">
+                          <label htmlFor="category" className={labelClasses}>Category</label>
+                          <select id="category" name="category" required value={formData.category} onChange={handleChange} className={inputClasses}>
                                <option value="">Select a category</option>
                                <option>Design</option><option>Development</option><option>Writing</option><option>Marketing</option><option>Other</option>
                           </select>
                       </div>
                        <div>
-                          <label htmlFor="credits" className="block text-sm font-medium text-gray-700">Credits Offered</label>
-                          <div className="mt-1 relative rounded-lg shadow-sm">
-                              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                 
-                              </div>
-                              <input type="number" name="credits" id="credits"  required value={formData.credits} onChange={handleChange} className="block w-full rounded-lg border-gray-300 py-3 text-center focus:border-gray-800 focus:ring-gray-800"/>
-                          </div>
+                          <label htmlFor="credits" className={labelClasses}>Credits Offered</label>
+                          <input type="number" name="credits" id="credits" required value={formData.credits} onChange={handleChange} className={`${inputClasses} text-center`}/>
                       </div>
                   </div>
                   
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                          <label htmlFor="deadline" className="block text-sm font-medium text-gray-700">Deadline</label>
-                          <input type="date" name="deadline" id="deadline" value={formData.deadline} onChange={handleChange} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800"/>
+                          <label htmlFor="deadline" className={labelClasses}>Deadline</label>
+                          <input type="date" name="deadline" id="deadline" value={formData.deadline} onChange={handleChange} className={inputClasses}/>
                       </div>
                       <div>
-                          <label htmlFor="estimatedHours" className="block text-sm font-medium text-gray-700">Estimated Hours</label>
-                           <input type="number" name="estimatedHours" id="estimatedHours" min="0" value={formData.estimatedHours} onChange={handleChange} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800"/>
+                          <label htmlFor="estimatedHours" className={labelClasses}>Estimated Hours</label>
+                           <input type="number" name="estimatedHours" id="estimatedHours" min="0" value={formData.estimatedHours} onChange={handleChange} className={inputClasses}/>
                       </div>
                   </div>
 
                   <div>
-                      <label className="block text-sm font-medium text-gray-700">Required Skills</label>
+                      <label htmlFor="maxBidders" className={labelClasses}>Max Proposals Allowed</label>
+                      <input type="number" name="maxBidders" id="maxBidders" min="1" max="20" required value={formData.maxBidders} onChange={handleChange} className={`${inputClasses} text-center`}/>
+                      <p className="text-xs text-white/40 mt-1">Bidding closes automatically once this many proposals are received.</p>
+                  </div>
+
+                  <div>
+                      <label className={labelClasses}>Required Skills</label>
                       <div className="mt-1 flex gap-x-2">
-                          <input type="text" value={skillsInput} onChange={(e) => setSkillsInput(e.target.value)} placeholder="e.g., React, Node.js" className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800"/>
-                          <button type="button" onClick={handleAddSkill} className="rounded-lg bg-gray-800 px-4 text-sm font-semibold text-white shadow-sm hover:bg-gray-900 whitespace-nowrap">Add Skill</button>
+                          <input type="text" value={skillsInput} onChange={(e) => setSkillsInput(e.target.value)} placeholder="e.g., React, Node.js" className={inputClasses}/>
+                          <button type="button" onClick={handleAddSkill} className="rounded bg-primary/20 border border-primary/40 px-4 text-sm font-semibold font-nav text-primary shadow-sm hover:bg-primary/30 whitespace-nowrap transition-all duration-300 uppercase tracking-wider">Add</button>
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2">
                           {skills.map(skill => (
-                              <span key={skill} className="inline-flex items-center gap-x-2 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-800">
+                              <span key={skill} className="inline-flex items-center gap-x-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
                                   {skill}
-                                  <button type="button" onClick={() => handleRemoveSkill(skill)} className="h-5 w-5 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-800 hover:bg-gray-200">
-                                      <svg className="h-3 w-3" fill="none" viewBox="0 0 14 14" stroke="currentColor"><path d="M1 1l12 12M13 1L1 13"/></svg>
+                                  <button type="button" onClick={() => handleRemoveSkill(skill)} className="h-5 w-5 flex items-center justify-center rounded-full text-primary/60 hover:text-primary hover:bg-primary/20 transition-all">
+                                      <X className="h-3 w-3" />
                                   </button>
                               </span>
                           ))}
@@ -284,7 +291,7 @@ const CreateTask = () => {
                   </div>
                   
                   <div className="pt-5">
-                      <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm font-medium text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800">
+                      <button type="submit" className="w-full flex justify-center py-3 px-4 rounded shadow-sm font-semibold font-nav text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300 uppercase tracking-wider">
                         Create Task
                       </button>
                   </div>
@@ -293,31 +300,31 @@ const CreateTask = () => {
 
             {/* Sidebar */}
             <div className="space-y-8">
-               <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Tips for a Great Task</h3>
-                   <ul className="space-y-4 text-sm text-gray-600">
+               <div className="card">
+                  <h3 className="text-lg font-heading font-bold text-white mb-4">Tips for a Great Task</h3>
+                   <ul className="space-y-4 text-sm text-white/60">
                       <li className="flex items-start gap-3">
-                          <svg className="h-5 w-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                          <Check className="h-4 w-4 text-primary flex-shrink-0" />
                           <span>Be specific about what you need and what the final deliverable should look like.</span>
                       </li>
                        <li className="flex items-start gap-3">
-                          <svg className="h-5 w-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                          <Check className="h-4 w-4 text-primary flex-shrink-0" />
                           <span>Set a realistic credit amount based on the complexity and time required.</span>
                       </li>
                        <li className="flex items-start gap-3">
-                          <svg className="h-5 w-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                          <Check className="h-4 w-4 text-primary flex-shrink-0" />
                           <span>List all the skills required for someone to successfully complete the task.</span>
                       </li>
                        <li className="flex items-start gap-3">
-                          <svg className="h-5 w-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                          <Check className="h-4 w-4 text-primary flex-shrink-0" />
                           <span>Be responsive to questions from potential task claimers.</span>
                       </li>
                   </ul>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Need Help?</h3>
-                  <p className="text-sm text-gray-600 mb-4">If you have questions about creating tasks or how the platform works, check out our help center or contact support.</p>
-                  <Link to="/help-center" className="text-sm font-medium text-gray-800 hover:text-gray-900">Go to Help Center &rarr;</Link>
+              <div className="card">
+                  <h3 className="text-lg font-heading font-bold text-white mb-4">Need Help?</h3>
+                  <p className="text-sm text-white/60 mb-4">If you have questions about creating tasks or how the platform works, check out our help center or contact support.</p>
+                  <Link to="/help-center" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors">Go to Help Center &rarr;</Link>
               </div>
             </div>
           </div>
