@@ -31,7 +31,7 @@ const Profile = () => {
   const [editFormData, setEditFormData] = useState({ name: '', bio: '' });
 
   const getAvatarUrl = (avatarPath) => {
-    if (!avatarPath) return `https://ui-avatars.com/api/?name=${profileUser?.name || 'User'}&background=252f3f&color=fff&bold=true`;
+    if (!avatarPath) return '/default-avatar.svg';
     if (avatarPath.startsWith('http')) return avatarPath;
     return `${API_URL}/${avatarPath.replace(/^\//, '')}`;
   };

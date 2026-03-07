@@ -161,7 +161,7 @@ const SingleTask = () => {
   };
 
   const getAvatarUrl = (avatarPath) => {
-    if (!avatarPath) return `https://ui-avatars.com/api/?name=?&background=random`;
+    if (!avatarPath) return '/default-avatar.svg';
     return avatarPath.startsWith('http') ? avatarPath : `${API_URL}/${avatarPath}`;
   };
 

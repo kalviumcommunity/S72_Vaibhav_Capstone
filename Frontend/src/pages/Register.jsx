@@ -37,9 +37,9 @@ const Register = () => {
       <div className="hidden lg:flex lg:w-1/2 bg-dark relative items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+            src="/working-4.jpg"
             alt="Register background"
-            className="w-full h-full object-cover opacity-20"
+            className="w-full h-full object-cover opacity-60"
           />
         </div>
         <div className="relative z-10 text-center px-12">

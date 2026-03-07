@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { PlusCircle, Package, Coins, ArrowRight, ChevronDown, Palette, Laptop, PenLine, Megaphone, Video, BarChart2, BadgeDollarSign, GraduationCap } from 'lucide-react';
 import Layout from '../components/Layout';
 
@@ -33,6 +34,7 @@ const CATEGORIES = [
 ];
 
 const Home = () => {
+  const { user } = useAuth();
   return (
     <Layout>
 
@@ -75,12 +77,23 @@ const Home = () => {
               Browse Marketplace
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link
-              to="/register"
-              className="inline-flex items-center justify-center px-8 py-3.5 border border-white/20 text-white font-nav font-semibold rounded hover:border-primary hover:text-primary transition-all duration-300 text-sm uppercase tracking-wider"
-            >
-              Start Free
-            </Link>
+            {!user && (
+              <Link
+                to="/register"
+                className="inline-flex items-center justify-center px-8 py-3.5 border border-white/20 text-white font-nav font-semibold rounded hover:border-primary hover:text-primary transition-all duration-300 text-sm uppercase tracking-wider"
+              >
+                Start Free
+              </Link>
+            )}
+            {user && (
+              <Link
+                to="/create-task"
+                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 border border-white/20 text-white font-nav font-semibold rounded hover:border-primary hover:text-primary transition-all duration-300 text-sm uppercase tracking-wider"
+              >
+                <PlusCircle className="w-4 h-4" />
+                Post a Task
+              </Link>
+            )}
           </div>
 
           {/* Scroll indicator */}
