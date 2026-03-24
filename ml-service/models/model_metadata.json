@@ -1,0 +1,65 @@
+{
+  "version": "2.0",
+  "release_date": "2026-03-24T18:04:21.384476",
+  "model_type": "RandomForestClassifier",
+  "n_features": 10,
+  "features": [
+    "skillMatchScore",
+    "creditFairness",
+    "deadlineRealism",
+    "completionRate",
+    "avgRating",
+    "lateRatio",
+    "workloadScore",
+    "experienceLevel",
+    "proposalRelevanceScore",
+    "keywordCoverageScore"
+  ],
+  "target": "success",
+  "hyperparameters": {
+    "n_estimators": 100,
+    "max_depth": 15,
+    "min_samples_split": 10,
+    "min_samples_leaf": 5,
+    "random_state": 42
+  },
+  "training_data": "mock_training_data.csv",
+  "performance_metrics": {
+    "train_accuracy": 0.913125,
+    "train_auc": 0.9747614842685197,
+    "train_f1": 0.898761835396941,
+    "test_accuracy": 0.6425,
+    "test_auc": 0.7027331642716259,
+    "test_f1": 0.5830903790087464,
+    "test_precision": 0.5747126436781609,
+    "test_recall": 0.591715976331361,
+    "confusion_matrix": [
+      [
+        157,
+        74
+      ],
+      [
+        69,
+        100
+      ]
+    ],
+    "accuracy_mean": 0.636875,
+    "accuracy_std": 0.02186606960566987,
+    "auc_mean": 0.6857481311234508,
+    "auc_std": 0.01986538926252414,
+    "f1_mean": 0.5817668955002471,
+    "f1_std": 0.03597684762331153
+  },
+  "feature_importance": {
+    "skillMatchScore": 0.09931540404169906,
+    "creditFairness": 0.10411482558975287,
+    "deadlineRealism": 0.07175135089690284,
+    "completionRate": 0.21340699407324432,
+    "avgRating": 0.08629795229725074,
+    "lateRatio": 0.12973420133357913,
+    "workloadScore": 0.02962677560533707,
+    "experienceLevel": 0.07491784651883972,
+    "proposalRelevanceScore": 0.10105973216483803,
+    "keywordCoverageScore": 0.08977491747855629
+  }
+}
