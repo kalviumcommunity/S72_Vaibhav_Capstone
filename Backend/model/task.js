@@ -111,17 +111,6 @@ try {
           type: String,
           default: ''
         },
-        mlPrediction: {
-          success_probability: Number,
-          prediction: String,
-          confidence: Number,
-          model_version: String,
-          error: String,
-          bid_id: String,
-          bidder_id: String,
-          task_id: String,
-          timestamp: Date
-        },
         createdAt: {
           type: Date,
           default: Date.now

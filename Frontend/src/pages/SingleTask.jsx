@@ -371,27 +371,13 @@ const SingleTask = () => {
                           className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/30 flex-shrink-0"
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2 mb-1">
-                            <p className="font-semibold text-white text-sm">{bid.bidder?.name}</p>
-                            {bid.mlPrediction?.success_probability !== null && bid.mlPrediction?.success_probability !== undefined && (
-                              <div className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                                bid.mlPrediction.success_probability >= 0.80 ? 'bg-green-500/20 text-green-300' :
-                                bid.mlPrediction.success_probability >= 0.60 ? 'bg-yellow-500/20 text-yellow-300' :
-                                'bg-red-500/20 text-red-300'
-                              }`}>
-                                {(bid.mlPrediction.success_probability * 100).toFixed(0)}% Success
-                              </div>
-                            )}
-                          </div>
+                          <p className="font-semibold text-white text-sm">{bid.bidder?.name}</p>
                           <div className="flex gap-4 mt-1 text-xs">
                             {bid.credits > 0 && <span className="text-primary font-semibold">{bid.credits} credits</span>}
                             {bid.days > 0 && <span className="text-white/50">{bid.days} day{bid.days !== 1 ? 's' : ''}</span>}
                           </div>
                           {bid.message && <p className="text-white/60 text-sm mt-1">{bid.message}</p>}
                           <p className="text-white/30 text-xs mt-1">{new Date(bid.createdAt).toLocaleDateString()}</p>
-                          {bid.mlPrediction?.error && (
-                            <p className="text-orange-300/60 text-xs mt-1 italic">⚠ AI score unavailable: {bid.mlPrediction.error}</p>
-                          )}
                         </div>
                         <button
                           onClick={() => handleSelectBidder(bid.bidder?._id)}

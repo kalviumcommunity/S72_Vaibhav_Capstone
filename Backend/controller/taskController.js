@@ -5,7 +5,6 @@ const axios = require('axios'); // Import axios
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { getBidPrediction } = require('../util/mlIntegration');
 // Load environment variables from .env file
 require('dotenv').config();
 
@@ -691,25 +690,11 @@ const placeBid = async (req, res) => {
 
     const { message, credits, days } = req.body;
     
-    // Generate unique bid ID for tracking
-    const bidId = `BID_${task._id}_${req.user._id}_${Date.now()}`;
-    
-    // Get ML prediction for this bid
-    let bidPrediction = null;
-    try {
-      bidPrediction = await getBidPrediction(req.user, task, bidId);
-      console.log('[BID] ML Prediction:', bidPrediction);
-    } catch (error) {
-      console.error('[BID] ML Prediction error:', error.message);
-      // Continue without prediction if ML service fails
-    }
-    
     task.bids.push({ 
       bidder: req.user._id, 
       credits: Number(credits) || 0, 
       days: Number(days) || 1, 
-      message: message || '',
-      mlPrediction: bidPrediction || null
+      message: message || ''
     });
 
     // Transition OPEN → BIDDING on first proposal
@@ -725,8 +710,7 @@ const placeBid = async (req, res) => {
     res.status(201).json({ 
       success: true, 
       message: 'Proposal submitted successfully', 
-      task,
-      bidPrediction: bidPrediction || null
+      task
     });
   } catch (error) {
     console.error('Error placing bid:', error);
