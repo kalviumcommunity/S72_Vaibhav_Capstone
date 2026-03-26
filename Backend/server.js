@@ -32,7 +32,8 @@ app.use(cors({
       'http://127.0.0.1:5173',
       'http://127.0.0.1:3000',
       'https://credbuzz.netlify.app', // Production Netlify
-      /\.replit\.dev$/ // Allow all Replit subdomains
+      'https://s-72-vaibhav-capstone--vaibh74050.replit.app', // Replit production
+      /\.replit\.(dev|app)$/ // Allow all Replit subdomains (.replit.dev and .replit.app)
     ];
     
     if (!origin || allowedOrigins.some(allowed => 
