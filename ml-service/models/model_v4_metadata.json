@@ -1,0 +1,45 @@
+{
+  "version": "4.0",
+  "timestamp": "2026-03-24T18:22:41.388942",
+  "accuracy": 0.74375,
+  "precision": 0.8266666666666667,
+  "recall": 0.6888888888888889,
+  "f1_score": 0.7515151515151515,
+  "auc_roc": 0.8440873015873017,
+  "hyperparameters": {
+    "n_estimators": 400,
+    "max_depth": 7,
+    "learning_rate": 0.07,
+    "subsample": 0.92,
+    "colsample_bytree": 0.92,
+    "reg_alpha": 0.05,
+    "reg_lambda": 0.5,
+    "gamma": 1,
+    "min_child_weight": 2
+  },
+  "features": [
+    "skillMatchScore",
+    "creditFairness",
+    "deadlineRealism",
+    "completionRate",
+    "avgRating",
+    "lateRatio",
+    "workloadScore",
+    "experienceLevel",
+    "proposalRelevanceScore",
+    "keywordCoverageScore",
+    "skill_x_proposal",
+    "credit_deadline",
+    "reliability",
+    "risk_factor",
+    "quality_score",
+    "experience_skill",
+    "inverse_risk"
+  ],
+  "data_distribution": {
+    "expert_success_rate": 0.85,
+    "mixed_success_rate": 0.5,
+    "risky_success_rate": 0.15
+  },
+  "status": "development"
+}

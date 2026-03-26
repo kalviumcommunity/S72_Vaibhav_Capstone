@@ -1,0 +1,115 @@
+{
+  "timestamp": "2026-03-24T19:01:53.930227",
+  "total_tests": 4,
+  "results": [
+    {
+      "bid_id": "BID_EXPERT_001",
+      "scenario": "EXPERT (Tier 1: 98% success expected)",
+      "probability": 0.9993016719818115,
+      "prediction": "\u2713 LIKELY SUCCESS",
+      "features": {
+        "skillMatchScore": 0.95,
+        "creditFairness": 0.95,
+        "deadlineRealism": 0.85,
+        "completionRate": 0.95,
+        "avgRating": 4.9,
+        "lateRatio": 0.01,
+        "workloadScore": 0.5,
+        "experienceLevel": 5,
+        "proposalRelevanceScore": 0.95,
+        "keywordCoverageScore": 0.95
+      },
+      "engineered_features": {
+        "skill_proposal_fit": 0.9025,
+        "credit_deadline_alignment": 0.8075,
+        "quality_composite": 2.266666666666667,
+        "risk_factor": 0.255,
+        "reliability_index": 3.725,
+        "proposal_quality": 0.9025,
+        "expert_profile_score": 4.7025
+      }
+    },
+    {
+      "bid_id": "BID_PROFESSIONAL_002",
+      "scenario": "PROFESSIONAL (Tier 2: 85% success expected)",
+      "probability": 0.9301885962486267,
+      "prediction": "\u2713 LIKELY SUCCESS",
+      "features": {
+        "skillMatchScore": 0.8,
+        "creditFairness": 0.8,
+        "deadlineRealism": 0.75,
+        "completionRate": 0.82,
+        "avgRating": 4.2,
+        "lateRatio": 0.08,
+        "workloadScore": 0.6,
+        "experienceLevel": 3,
+        "proposalRelevanceScore": 0.85,
+        "keywordCoverageScore": 0.82
+      },
+      "engineered_features": {
+        "skill_proposal_fit": 0.68,
+        "credit_deadline_alignment": 0.6000000000000001,
+        "quality_composite": 1.9566666666666668,
+        "risk_factor": 0.33999999999999997,
+        "reliability_index": 1.98,
+        "proposal_quality": 0.697,
+        "expert_profile_score": 2.2080000000000006
+      }
+    },
+    {
+      "bid_id": "BID_MEDIUM_003",
+      "scenario": "MEDIUM (Tier 3: 35% success expected)",
+      "probability": 0.4985460638999939,
+      "prediction": "\u2717 LIKELY FAILURE",
+      "features": {
+        "skillMatchScore": 0.65,
+        "creditFairness": 0.6,
+        "deadlineRealism": 0.5,
+        "completionRate": 0.6,
+        "avgRating": 3.0,
+        "lateRatio": 0.2,
+        "workloadScore": 0.8,
+        "experienceLevel": 2,
+        "proposalRelevanceScore": 0.55,
+        "keywordCoverageScore": 0.6
+      },
+      "engineered_features": {
+        "skill_proposal_fit": 0.35750000000000004,
+        "credit_deadline_alignment": 0.3,
+        "quality_composite": 1.3833333333333335,
+        "risk_factor": 0.5,
+        "reliability_index": 1.0,
+        "proposal_quality": 0.33,
+        "expert_profile_score": 1.04
+      }
+    },
+    {
+      "bid_id": "BID_LOW_004",
+      "scenario": "LOW QUALITY (Tier 4: 2% success expected)",
+      "probability": 0.013768881559371948,
+      "prediction": "\u2717 LIKELY FAILURE",
+      "features": {
+        "skillMatchScore": 0.2,
+        "creditFairness": 0.1,
+        "deadlineRealism": 0.1,
+        "completionRate": 0.2,
+        "avgRating": 1.5,
+        "lateRatio": 0.8,
+        "workloadScore": 0.95,
+        "experienceLevel": 0,
+        "proposalRelevanceScore": 0.1,
+        "keywordCoverageScore": 0.15
+      },
+      "engineered_features": {
+        "skill_proposal_fit": 0.020000000000000004,
+        "credit_deadline_alignment": 0.010000000000000002,
+        "quality_composite": 0.6,
+        "risk_factor": 0.875,
+        "reliability_index": 0.0,
+        "proposal_quality": 0.015,
+        "expert_profile_score": 0.0
+      }
+    }
+  ],
+  "status": "passed"
+}

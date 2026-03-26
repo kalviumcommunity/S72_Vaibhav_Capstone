@@ -1,0 +1,58 @@
+{
+  "version": "3.0",
+  "release_date": "2026-03-24T18:10:49.704934",
+  "model_type": "XGBoost",
+  "features": [
+    "skillMatchScore",
+    "creditFairness",
+    "deadlineRealism",
+    "completionRate",
+    "avgRating",
+    "lateRatio",
+    "workloadScore",
+    "experienceLevel",
+    "proposalRelevanceScore",
+    "keywordCoverageScore",
+    "skill_x_proposal",
+    "skill_x_keyword",
+    "credit_x_deadline",
+    "completion_x_rating",
+    "reliability",
+    "proposal_quality",
+    "exp_to_workload"
+  ],
+  "n_features": 17,
+  "engineered_features": [
+    "skill_x_proposal",
+    "skill_x_keyword",
+    "credit_x_deadline",
+    "completion_x_rating",
+    "reliability",
+    "proposal_quality",
+    "exp_to_workload"
+  ],
+  "performance": {
+    "train_accuracy": 0.999,
+    "train_auc": 0.9999879711186559,
+    "test_accuracy": 0.756,
+    "test_auc": 0.8285329398935146,
+    "test_precision": 0.7713178294573644,
+    "test_recall": 0.7595419847328244,
+    "test_f1": 0.7653846153846153,
+    "confusion_matrix": [
+      [
+        179,
+        59
+      ],
+      [
+        63,
+        199
+      ]
+    ],
+    "accuracy_mean": 0.741,
+    "accuracy_std": 0.015378556499229687,
+    "auc_mean": 0.8193520927497231,
+    "auc_std": 0.012644134947822813
+  },
+  "training_data": "training_data_v2_hq.csv"
+}

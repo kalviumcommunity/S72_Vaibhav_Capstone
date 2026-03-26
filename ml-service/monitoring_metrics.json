@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-03-24T18:47:24.141615",
+  "total_predictions": 1,
+  "total_confirmed": 1,
+  "total_pending": 0,
+  "total_successes": 1,
+  "predicted_success": 1,
+  "predicted_failure": 0,
+  "current_accuracy": 1.0,
+  "true_positive_rate": 1.0,
+  "true_negative_rate": 0,
+  "baseline_accuracy": 0.8675,
+  "accuracy_threshold": 0.81,
+  "retraining_threshold": 200
+}

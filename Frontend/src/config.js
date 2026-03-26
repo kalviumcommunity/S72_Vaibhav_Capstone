@@ -1,8 +1,12 @@
 // API Configuration
 
-// Set to true for local development, false for deployed
-const USE_LOCAL = false; // Set to true for localhost, false for deployed
+// Detect environment
+const isReplit = typeof window !== 'undefined' && window.location.hostname.includes('replit.dev');
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-export const API_URL = USE_LOCAL
+// For Replit: Backend runs on same instance, accessible via localhost:5000
+// For local dev: Use localhost:5000
+// For production: Use Render URL
+export const API_URL = isReplit || isLocalhost
   ? 'http://localhost:5000'
   : 'https://s72-vaibhav-capstone.onrender.com'; 

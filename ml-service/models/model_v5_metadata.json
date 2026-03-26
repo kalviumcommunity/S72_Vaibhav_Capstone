@@ -1,0 +1,78 @@
+{
+  "version": "5.0",
+  "model_name": "XGBoost Bid Success Predictor",
+  "timestamp": "2026-03-24T18:33:08.207819",
+  "goal": "85%+ accuracy",
+  "performance": {
+    "accuracy": 0.8675,
+    "precision": 0.8947368421052632,
+    "recall": 0.8577981651376146,
+    "f1_score": 0.8758782201405152,
+    "auc_roc": 0.929655207178143,
+    "cv_mean": 0.875,
+    "cv_std": 0.018957188610128854,
+    "confusion_matrix": {
+      "true_negatives": 160,
+      "false_positives": 22,
+      "false_negatives": 31,
+      "true_positives": 187
+    }
+  },
+  "model_config": {
+    "algorithm": "XGBoost",
+    "n_estimators": 800,
+    "max_depth": 10,
+    "learning_rate": 0.04,
+    "subsample": 0.98,
+    "colsample_bytree": 0.98,
+    "reg_alpha": 0,
+    "reg_lambda": 0.05,
+    "gamma": 0.2
+  },
+  "features": {
+    "base_features": [
+      "skillMatchScore",
+      "creditFairness",
+      "deadlineRealism",
+      "completionRate",
+      "avgRating",
+      "lateRatio",
+      "workloadScore",
+      "experienceLevel",
+      "proposalRelevanceScore",
+      "keywordCoverageScore"
+    ],
+    "engineered_features": [
+      "skill_proposal_fit",
+      "credit_deadline_alignment",
+      "quality_composite",
+      "risk_factor",
+      "reliability_index",
+      "proposal_quality",
+      "expert_profile_score"
+    ],
+    "total_features": 17
+  },
+  "data_distribution": {
+    "tier_1_experts_98pct": {
+      "count": 500,
+      "success_rate": 0.98
+    },
+    "tier_2_professionals_85pct": {
+      "count": 500,
+      "success_rate": 0.85
+    },
+    "tier_3_medium_35pct": {
+      "count": 500,
+      "success_rate": 0.35
+    },
+    "tier_4_scammers_2pct": {
+      "count": 500,
+      "success_rate": 0.02
+    },
+    "total_samples": 2000,
+    "overall_success_rate": 0.5455
+  },
+  "status": "production_ready",
+  "ready_for_deployment": true
+}
