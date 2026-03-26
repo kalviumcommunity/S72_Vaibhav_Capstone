@@ -24,11 +24,25 @@ uploadDirs.forEach(dir => {
 
 // Use CORS middleware
 app.use(cors({
-  origin: [
-    'http://localhost:5173', // Vite
-    'http://localhost:3000', // React
-    'https://credbuzz.netlify.app' // Production
-  ],
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:5173', // Vite local dev
+      'http://localhost:3000', // React local dev
+      'http://localhost:5174', // Vite alternative port
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3000',
+      'https://credbuzz.netlify.app', // Production Netlify
+      /\.replit\.dev$/ // Allow all Replit subdomains
+    ];
+    
+    if (!origin || allowedOrigins.some(allowed => 
+      typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
+    )) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
