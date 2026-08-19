@@ -32,13 +32,10 @@ app.use(cors({
       'http://127.0.0.1:5173',
       'http://127.0.0.1:3000',
       'https://credbuzz.netlify.app', // Production Netlify
-      'https://s-72-vaibhav-capstone--vaibh74050.replit.app', // Replit production
-      /\.replit\.(dev|app)$/ // Allow all Replit subdomains (.replit.dev and .replit.app)
+      'https://s72-vaibhav-capstone.onrender.com' // Render production frontend/backend host
     ];
-    
-    if (!origin || allowedOrigins.some(allowed => 
-      typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
-    )) {
+
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));

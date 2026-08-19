@@ -7,8 +7,7 @@ export default defineConfig({
   server: {
     allowedHosts: [
       'localhost',
-      '127.0.0.1',
-      '.replit.dev' // Allow all Replit dev domains
+      '127.0.0.1'
     ],
     host: '0.0.0.0',
     port: 5173,
